@@ -1,4 +1,3 @@
-```javascript
 document.addEventListener("DOMContentLoaded", () => {
     // =========================================================
     // LITTLE WORLD ♡
@@ -1161,4 +1160,3 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Music tracks:", tracks.length);
     console.log("Initial volume:", Math.round(savedVolume * 100) + "%");
 });
-```
