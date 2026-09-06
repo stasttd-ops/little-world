@@ -5,12 +5,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // HELPERS
     // =========================================================
 
-    const $ = (selector, parent = document) => parent.querySelector(selector);
-    const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
+    const $ = (selector, parent = document) =>
+        parent.querySelector(selector);
 
-    const safeText = (value, fallback = "") => {
-        return value == null ? fallback : String(value);
-    };
+    const $$ = (selector, parent = document) =>
+        [...parent.querySelectorAll(selector)];
+
+    const safeText = (value, fallback = "") =>
+        value == null ? fallback : String(value);
 
     const formatTime = (seconds) => {
         if (!Number.isFinite(seconds) || seconds < 0) {
@@ -49,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         toastTimer = setTimeout(() => {
             toast.classList.remove("show");
-        }, 2200);
+        }, 2500);
     }
 
     // =========================================================
@@ -68,7 +70,8 @@ document.addEventListener("DOMContentLoaded", () => {
             star.style.left = `${Math.random() * 100}%`;
             star.style.top = `${Math.random() * 100}%`;
             star.style.animationDelay = `${Math.random() * 4}s`;
-            star.style.animationDuration = `${2 + Math.random() * 4}s`;
+            star.style.animationDuration =
+                `${2 + Math.random() * 4}s`;
 
             fragment.appendChild(star);
         }
@@ -90,8 +93,10 @@ document.addEventListener("DOMContentLoaded", () => {
             heart.style.left = `${Math.random() * 100}%`;
             heart.style.top = `${Math.random() * 100}%`;
             heart.style.animationDelay = `${Math.random() * 5}s`;
-            heart.style.animationDuration = `${5 + Math.random() * 5}s`;
-            heart.style.fontSize = `${12 + Math.random() * 22}px`;
+            heart.style.animationDuration =
+                `${5 + Math.random() * 5}s`;
+            heart.style.fontSize =
+                `${12 + Math.random() * 22}px`;
 
             fragment.appendChild(heart);
         }
@@ -128,20 +133,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (navBurger && navLinks) {
         navBurger.addEventListener("click", () => {
-            const isOpen = navBurger.classList.toggle("is-open");
+            const isOpen =
+                navBurger.classList.toggle("is-open");
 
             navLinks.classList.toggle("is-open", isOpen);
             navBurger.classList.toggle("active", isOpen);
             navLinks.classList.toggle("active", isOpen);
 
-            navBurger.setAttribute("aria-expanded", String(isOpen));
+            navBurger.setAttribute(
+                "aria-expanded",
+                String(isOpen)
+            );
         });
 
         $$(".nav__link", navLinks).forEach((link) => {
             link.addEventListener("click", () => {
-                navBurger.classList.remove("is-open", "active");
-                navLinks.classList.remove("is-open", "active");
-                navBurger.setAttribute("aria-expanded", "false");
+                navBurger.classList.remove(
+                    "is-open",
+                    "active"
+                );
+
+                navLinks.classList.remove(
+                    "is-open",
+                    "active"
+                );
+
+                navBurger.setAttribute(
+                    "aria-expanded",
+                    "false"
+                );
             });
         });
     }
@@ -204,6 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         heart.className = "pet-heart";
         heart.textContent = "♡";
+
         heart.style.setProperty(
             "--heart-x",
             `${-35 + Math.random() * 70}px`
@@ -257,7 +278,11 @@ document.addEventListener("DOMContentLoaded", () => {
             ];
 
             reaction.textContent =
-                reactions[Math.floor(Math.random() * reactions.length)];
+                reactions[
+                    Math.floor(
+                        Math.random() * reactions.length
+                    )
+                ];
 
             reaction.classList.add("show");
         }
@@ -276,8 +301,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     cat: cat?.name || "unknown"
                 })
             });
-        } catch (error) {
-            // Statistics are optional.
+        } catch {
+            // Optional statistics.
         }
     }
 
@@ -290,40 +315,42 @@ document.addEventListener("DOMContentLoaded", () => {
             const card = document.createElement("article");
 
             card.className = "cat-card";
+
             card.style.setProperty(
                 "--tilt",
                 `${index % 2 === 0 ? -1 : 1.2}deg`
             );
 
-            const name = escapeHTML(
-                cat.name || "Kitty"
-            );
+            const name =
+                escapeHTML(cat.name || "Kitty");
 
-            const emoji = escapeHTML(
-                cat.emoji || "🐱"
-            );
+            const emoji =
+                escapeHTML(cat.emoji || "🐱");
 
-            const description = escapeHTML(
-                cat.description ||
-                cat.personality ||
-                "маленький пухнастик"
-            );
+            const description =
+                escapeHTML(
+                    cat.description ||
+                    cat.personality ||
+                    "маленький пухнастик"
+                );
 
-            const personality = escapeHTML(
-                cat.personality || ""
-            );
+            const personality =
+                escapeHTML(cat.personality || "");
 
-            const favorite = escapeHTML(
-                cat.favorite || ""
-            );
+            const favorite =
+                escapeHTML(cat.favorite || "");
 
             card.innerHTML = `
                 <div class="cat-card__portrait">
-                    <span class="cat-card__emoji">${emoji}</span>
+                    <span class="cat-card__emoji">
+                        ${emoji}
+                    </span>
                 </div>
 
                 <div class="cat-card__body">
-                    <h3 class="cat-card__name">${name}</h3>
+                    <h3 class="cat-card__name">
+                        ${name}
+                    </h3>
 
                     <p class="cat-card__personality">
                         ${description}
@@ -331,17 +358,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     ${
                         personality
-                            ? `<p class="cat-card__favorite">
-                                ${personality}
-                            </p>`
+                            ? `
+                                <p class="cat-card__favorite">
+                                    ${personality}
+                                </p>
+                            `
                             : ""
                     }
 
                     ${
                         favorite
-                            ? `<p class="cat-card__favorite">
-                                ♡ ${favorite}
-                            </p>`
+                            ? `
+                                <p class="cat-card__favorite">
+                                    ♡ ${favorite}
+                                </p>
+                            `
                             : ""
                     }
 
@@ -357,10 +388,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     </p>
                 </div>
 
-                <div class="cat-card__hearts" aria-hidden="true"></div>
+                <div
+                    class="cat-card__hearts"
+                    aria-hidden="true"
+                ></div>
             `;
 
-            const button = $(".cat-card__pet-btn", card);
+            const button =
+                $(".cat-card__pet-btn", card);
 
             if (button) {
                 button.addEventListener("click", () => {
@@ -374,9 +409,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function loadCats() {
         try {
-            const response = await fetch("/api/cats", {
-                cache: "no-store"
-            });
+            const response =
+                await fetch("/api/cats", {
+                    cache: "no-store"
+                });
 
             if (!response.ok) {
                 throw new Error("Cats API failed");
@@ -393,7 +429,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!cats.length) {
                 cats = fallbackCats;
             }
-        } catch (error) {
+        } catch {
             cats = fallbackCats;
         }
 
@@ -495,15 +531,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
         object.addEventListener("click", () => {
             const messages = roomMessages[id];
+
             const message =
-                messages[Math.floor(Math.random() * messages.length)];
+                messages[
+                    Math.floor(
+                        Math.random() * messages.length
+                    )
+                ];
 
             showRoomMessage(message);
             moveRoomCat(id);
         });
 
         object.addEventListener("keydown", (event) => {
-            if (event.key === "Enter" || event.key === " ") {
+            if (
+                event.key === "Enter" ||
+                event.key === " "
+            ) {
                 event.preventDefault();
                 object.click();
             }
@@ -512,7 +556,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (roomCat) {
         roomCat.addEventListener("click", () => {
-            const rect = roomCat.getBoundingClientRect();
+            const rect =
+                roomCat.getBoundingClientRect();
 
             createFloatingHeart(
                 rect.left + rect.width / 2,
@@ -527,7 +572,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 roomCat.classList.add("is-playing");
 
                 setTimeout(() => {
-                    roomCat.classList.remove("is-playing");
+                    roomCat.classList.remove(
+                        "is-playing"
+                    );
                 }, 600);
             });
         });
@@ -545,53 +592,111 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateWindow() {
         if (windowSky) {
-            windowSky.classList.toggle("day", !nightMode);
+            windowSky.classList.toggle(
+                "day",
+                !nightMode
+            );
         }
 
         if (windowScenery) {
-            windowScenery.classList.toggle("day", !nightMode);
+            windowScenery.classList.toggle(
+                "day",
+                !nightMode
+            );
 
             windowScenery.innerHTML = nightMode
                 ? `
-                    <circle cx="190" cy="95" r="18" fill="#fff3c4"/>
-                    <circle cx="110" cy="110" r="2" fill="#ffffff"/>
-                    <circle cx="145" cy="90" r="2" fill="#ffffff"/>
-                    <circle cx="175" cy="135" r="2" fill="#ffffff"/>
-                    <circle cx="100" cy="155" r="2" fill="#ffffff"/>
-                    <circle cx="205" cy="155" r="2" fill="#ffffff"/>
+                    <circle
+                        cx="190"
+                        cy="95"
+                        r="18"
+                        fill="#fff3c4"
+                    />
+
+                    <circle
+                        cx="110"
+                        cy="110"
+                        r="2"
+                        fill="#ffffff"
+                    />
+
+                    <circle
+                        cx="145"
+                        cy="90"
+                        r="2"
+                        fill="#ffffff"
+                    />
+
+                    <circle
+                        cx="175"
+                        cy="135"
+                        r="2"
+                        fill="#ffffff"
+                    />
+
+                    <circle
+                        cx="100"
+                        cy="155"
+                        r="2"
+                        fill="#ffffff"
+                    />
+
+                    <circle
+                        cx="205"
+                        cy="155"
+                        r="2"
+                        fill="#ffffff"
+                    />
                 `
                 : `
-                    <circle cx="190" cy="100" r="22" fill="#fff3a8"/>
+                    <circle
+                        cx="190"
+                        cy="100"
+                        r="22"
+                        fill="#fff3a8"
+                    />
+
                     <path
-                        d="M70 185
-                           C100 165 120 175 145 165
-                           C175 150 195 175 230 150
-                           L230 200
-                           L70 200 Z"
+                        d="
+                            M70 185
+                            C100 165 120 175 145 165
+                            C175 150 195 175 230 150
+                            L230 200
+                            L70 200 Z
+                        "
                         fill="#b6dcc2"
                     />
-                    <circle cx="105" cy="125" r="8" fill="#ffffff" opacity="0.7"/>
-                    <circle cx="125" cy="115" r="11" fill="#ffffff" opacity="0.7"/>
+
+                    <circle
+                        cx="105"
+                        cy="125"
+                        r="8"
+                        fill="#ffffff"
+                        opacity="0.7"
+                    />
+
+                    <circle
+                        cx="125"
+                        cy="115"
+                        r="11"
+                        fill="#ffffff"
+                        opacity="0.7"
+                    />
                 `;
         }
     }
 
     if (objWindow) {
-        objWindow.addEventListener("click", (event) => {
-            if (
-                event.target === windowSky ||
-                event.target === windowScenery ||
-                objWindow.contains(event.target)
-            ) {
-                nightMode = !nightMode;
-                updateWindow();
+        objWindow.addEventListener("click", () => {
+            nightMode = !nightMode;
 
-                showRoomMessage(
-                    nightMode
-                        ? "ніч повернулася 🌙"
-                        : "сонечко виглянуло ☀️"
-                );
-            }
+            updateWindow();
+
+            showRoomMessage(
+                nightMode
+                    ? "ніч повернулася 🌙"
+                    : "сонечко виглянуло ☀️"
+            );
         });
     }
 
@@ -610,15 +715,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateLamp() {
         if (lampShade) {
-            lampShade.style.opacity = lampOn ? "1" : "0.45";
+            lampShade.style.opacity =
+                lampOn ? "1" : "0.45";
         }
 
         if (lampBulb) {
-            lampBulb.style.opacity = lampOn ? "1" : "0.35";
+            lampBulb.style.opacity =
+                lampOn ? "1" : "0.35";
         }
 
         if (lampGlow) {
-            lampGlow.style.opacity = lampOn ? "0.35" : "0";
+            lampGlow.style.opacity =
+                lampOn ? "0.35" : "0";
         }
     }
 
@@ -651,8 +759,15 @@ document.addEventListener("DOMContentLoaded", () => {
             gameTabs.forEach((item) => {
                 const active = item === tab;
 
-                item.classList.toggle("is-active", active);
-                item.classList.toggle("active", active);
+                item.classList.toggle(
+                    "is-active",
+                    active
+                );
+
+                item.classList.toggle(
+                    "active",
+                    active
+                );
 
                 item.setAttribute(
                     "aria-selected",
@@ -664,8 +779,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 const active =
                     panel.id === `game-${game}`;
 
-                panel.classList.toggle("is-active", active);
-                panel.classList.toggle("active", active);
+                panel.classList.toggle(
+                    "is-active",
+                    active
+                );
+
+                panel.classList.toggle(
+                    "active",
+                    active
+                );
             });
         });
     });
@@ -687,16 +809,20 @@ document.addEventListener("DOMContentLoaded", () => {
     let catchTimer = null;
     let catchRunning = false;
 
-    let catchBestValue = Number(
-        localStorage.getItem("little-world-catch-best") || 0
-    );
+    let catchBestValue =
+        Number(
+            localStorage.getItem(
+                "little-world-catch-best"
+            ) || 0
+        );
 
     if (!Number.isFinite(catchBestValue)) {
         catchBestValue = 0;
     }
 
     if (catchBest) {
-        catchBest.textContent = String(catchBestValue);
+        catchBest.textContent =
+            String(catchBestValue);
     }
 
     function moveCatchCat() {
@@ -711,15 +837,17 @@ document.addEventListener("DOMContentLoaded", () => {
         const catHeight =
             catchCat.offsetHeight || 70;
 
-        const maxX = Math.max(
-            0,
-            stageRect.width - catWidth
-        );
+        const maxX =
+            Math.max(
+                0,
+                stageRect.width - catWidth
+            );
 
-        const maxY = Math.max(
-            0,
-            stageRect.height - catHeight
-        );
+        const maxY =
+            Math.max(
+                0,
+                stageRect.height - catHeight
+            );
 
         catchCat.style.left =
             `${Math.random() * maxX}px`;
@@ -737,7 +865,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (catchScoreValue > catchBestValue) {
-            catchBestValue = catchScoreValue;
+            catchBestValue =
+                catchScoreValue;
 
             localStorage.setItem(
                 "little-world-catch-best",
@@ -892,7 +1021,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         for (let i = result.length - 1; i > 0; i--) {
             const j =
-                Math.floor(Math.random() * (i + 1));
+                Math.floor(
+                    Math.random() * (i + 1)
+                );
 
             [result[i], result[j]] =
                 [result[j], result[i]];
@@ -912,15 +1043,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
             button.type = "button";
             button.className = "memory-card";
-            button.dataset.index = String(index);
+            button.dataset.index =
+                String(index);
 
             button.innerHTML = `
                 <span class="memory-card__inner">
-                    <span class="memory-card__face memory-card__face--front">
+                    <span
+                        class="
+                            memory-card__face
+                            memory-card__face--front
+                        "
+                    >
                         ?
                     </span>
 
-                    <span class="memory-card__face memory-card__face--back">
+                    <span
+                        class="
+                            memory-card__face
+                            memory-card__face--back
+                        "
+                    >
                         ${escapeHTML(card.symbol)}
                     </span>
                 </span>
@@ -954,13 +1096,12 @@ document.addEventListener("DOMContentLoaded", () => {
             ...memorySymbols
         ];
 
-        memoryCards = shuffle(doubled).map(
-            (symbol) => ({
+        memoryCards =
+            shuffle(doubled).map((symbol) => ({
                 symbol,
                 flipped: false,
                 matched: false
-            })
-        );
+            }));
 
         memoryFirst = null;
         memorySecond = null;
@@ -994,7 +1135,8 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const card = memoryCards[index];
+        const card =
+            memoryCards[index];
 
         card.flipped = true;
 
@@ -1121,24 +1263,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (petBigCatFace) {
             if (petValue >= 100) {
-                petBigCatFace.textContent =
-                    "😻";
+                petBigCatFace.textContent = "😻";
             } else if (petValue >= 60) {
-                petBigCatFace.textContent =
-                    "😸";
+                petBigCatFace.textContent = "😸";
             } else {
-                petBigCatFace.textContent =
-                    "🐱";
+                petBigCatFace.textContent = "🐱";
             }
         }
     }
 
     if (petBigCat) {
         petBigCat.addEventListener("click", () => {
-            petValue = Math.min(
-                100,
-                petValue + 10
-            );
+            petValue =
+                Math.min(100, petValue + 10);
 
             updatePetGame();
 
@@ -1181,10 +1318,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // MUSIC PLAYER
     // =========================================================
 
-    // IMPORTANT:
-    // #player is only a visual container.
-    // Real audio is created here.
-
     const musicAudio = new Audio();
 
     musicAudio.preload = "metadata";
@@ -1220,18 +1353,16 @@ document.addEventListener("DOMContentLoaded", () => {
     let tracks = [];
     let currentTrackIndex = 0;
 
-    // ---------------------------------------------------------
+    // =========================================================
     // VOLUME
-    // ---------------------------------------------------------
+    // =========================================================
 
-    // HTML slider remains 0-100.
-    // Default volume is exactly 25%.
-
-    let savedVolumePercent = Number(
-        localStorage.getItem(
-            "little-world-volume-percent"
-        )
-    );
+    let savedVolumePercent =
+        Number(
+            localStorage.getItem(
+                "little-world-volume-percent"
+            )
+        );
 
     if (
         !Number.isFinite(savedVolumePercent) ||
@@ -1252,9 +1383,9 @@ document.addEventListener("DOMContentLoaded", () => {
             String(savedVolumePercent);
     }
 
-    // ---------------------------------------------------------
+    // =========================================================
     // FALLBACK MUSIC
-    // ---------------------------------------------------------
+    // =========================================================
 
     const fallbackTracks = [
         {
@@ -1267,61 +1398,73 @@ document.addEventListener("DOMContentLoaded", () => {
         {
             title: "Emperor's New Clothes",
             artist: "Jann",
-            file: "/music/Jann - Emperor's New Clothes.mp3",
+            file:
+                "/music/Jann - Emperor's New Clothes.mp3",
             cover: "",
             spotify: ""
         },
         {
             title: "Gladiator",
             artist: "Jann",
-            file: "/music/Jann - Gladiator.mp3",
+            file:
+                "/music/Jann - Gladiator.mp3",
             cover: "",
             spotify: ""
         },
         {
             title: "Lookatme",
             artist: "Jann",
-            file: "/music/Jann - Lookatme.mp3",
+            file:
+                "/music/Jann - Lookatme.mp3",
             cover: "",
             spotify: ""
         },
         {
             title: "Need A Break",
             artist: "Jann",
-            file: "/music/Jann - Need A Break.mp3",
+            file:
+                "/music/Jann - Need A Break.mp3",
             cover: "",
             spotify: ""
         },
         {
             title: "Promise",
             artist: "Jann",
-            file: "/music/Jann - Promise.mp3",
+            file:
+                "/music/Jann - Promise.mp3",
             cover: "",
             spotify: ""
         },
         {
             title: "Smile",
             artist: "Jann",
-            file: "/music/Jann - Smile.mp3",
+            file:
+                "/music/Jann - Smile.mp3",
             cover: "",
             spotify: ""
         },
         {
             title: "Kisskiss",
             artist: "Jann",
-            file: "/music/Jann Kisskiss.mp3",
+            file:
+                "/music/Jann Kisskiss.mp3",
             cover: "",
             spotify: ""
         }
     ];
 
+    // =========================================================
+    // MUSIC PATH NORMALIZER
+    // =========================================================
+
     function normalizeFile(file) {
         if (!file) return "";
 
-        const value = String(file).trim();
+        let value = String(file).trim();
 
         if (!value) return "";
 
+        // External URL
         if (
             value.startsWith("http://") ||
             value.startsWith("https://")
@@ -1329,21 +1472,77 @@ document.addEventListener("DOMContentLoaded", () => {
             return value;
         }
 
-        let clean = value
-            .replace(/^\.?\//, "")
-            .replace(/^\/+/, "");
+        // Windows "\" -> "/"
+        value = value.replace(/\\/g, "/");
 
-        const parts = clean
-            .split("/")
-            .map((part) => {
-                try {
-                    return encodeURIComponent(
-                        decodeURIComponent(part)
-                    );
-                } catch {
-                    return encodeURIComponent(part);
-                }
-            });
+        // Remove file://
+        value = value.replace(
+            /^file:\/\/\/?/i,
+            ""
+        );
+
+        // Handle Windows local path:
+        // C:/Users/.../public/music/file.mp3
+        const publicIndex =
+            value.toLowerCase().indexOf(
+                "/public/"
+            );
+
+        if (publicIndex !== -1) {
+            value =
+                value.substring(
+                    publicIndex +
+                    "/public".length
+                );
+        }
+
+        // Handle paths without /public/
+        value = value.replace(
+            /^.*\/public\//i,
+            ""
+        );
+
+        // Remove ./ and leading /
+        value = value.replace(
+            /^\.\/+/,
+            ""
+        );
+
+        value = value.replace(
+            /^\/+/,
+            ""
+        );
+
+        // If API says public/music/...
+        value = value.replace(
+            /^public\/music\//i,
+            "music/"
+        );
+
+        // If API only contains filename
+        if (
+            !value
+                .toLowerCase()
+                .startsWith("music/")
+        ) {
+            value = `music/${value}`;
+        }
+
+        // Encode each URL part safely
+        const parts =
+            value
+                .split("/")
+                .map((part) => {
+                    try {
+                        return encodeURIComponent(
+                            decodeURIComponent(part)
+                        );
+                    } catch {
+                        return encodeURIComponent(
+                            part
+                        );
+                    }
+                });
 
         return `/${parts.join("/")}`;
     }
@@ -1356,12 +1555,13 @@ document.addEventListener("DOMContentLoaded", () => {
             return null;
         }
 
-        const file = normalizeFile(
-            track.file ||
-            track.url ||
-            track.src ||
-            track.path
-        );
+        const file =
+            normalizeFile(
+                track.file ||
+                track.url ||
+                track.src ||
+                track.path
+            );
 
         if (!file) {
             return null;
@@ -1406,9 +1606,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // ---------------------------------------------------------
+    // =========================================================
     // VISUALIZER
-    // ---------------------------------------------------------
+    // =========================================================
 
     function createVisualizerBars() {
         if (!vizBars) return;
@@ -1432,7 +1632,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const centerX = 60;
             const centerY = 60;
-
             const radius = 38;
 
             const x =
@@ -1478,9 +1677,9 @@ document.addEventListener("DOMContentLoaded", () => {
         vizBars.appendChild(fragment);
     }
 
-    // ---------------------------------------------------------
+    // =========================================================
     // PLAYLIST
-    // ---------------------------------------------------------
+    // =========================================================
 
     function renderPlaylist() {
         if (!playlist) return;
@@ -1493,14 +1692,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
             item.className = "music-item";
 
-            if (index === currentTrackIndex) {
-                item.classList.add("is-active");
+            if (
+                index === currentTrackIndex
+            ) {
+                item.classList.add(
+                    "is-active"
+                );
             }
 
             const button =
                 document.createElement("button");
 
             button.type = "button";
+
             button.className =
                 "music-item__button";
 
@@ -1538,7 +1742,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     ) {
                         pauseMusic();
                     } else {
-                        loadTrack(index, true);
+                        loadTrack(
+                            index,
+                            true
+                        );
                     }
                 }
             );
@@ -1548,9 +1755,9 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // ---------------------------------------------------------
+    // =========================================================
     // PLAYER UI
-    // ---------------------------------------------------------
+    // =========================================================
 
     function updatePlayerUI() {
         const track =
@@ -1638,14 +1845,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 "playing",
                 !musicAudio.paused
             );
+
+            playerVisualizer.classList.toggle(
+                "is-playing",
+                !musicAudio.paused
+            );
         }
 
         renderPlaylist();
     }
 
-    // ---------------------------------------------------------
+    // =========================================================
     // LOAD TRACK
-    // ---------------------------------------------------------
+    // =========================================================
 
     function loadTrack(
         index,
@@ -1654,7 +1866,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!tracks.length) return;
 
         if (index < 0) {
-            index = tracks.length - 1;
+            index =
+                tracks.length - 1;
         }
 
         if (index >= tracks.length) {
@@ -1666,10 +1879,22 @@ document.addEventListener("DOMContentLoaded", () => {
         const track =
             tracks[currentTrackIndex];
 
+        const url =
+            getTrackUrl(track.file);
+
+        console.log(
+            "Loading music:",
+            track.title,
+            url
+        );
+
         musicAudio.pause();
 
-        musicAudio.src =
-            getTrackUrl(track.file);
+        musicAudio.removeAttribute("src");
+
+        musicAudio.load();
+
+        musicAudio.src = url;
 
         musicAudio.currentTime = 0;
 
@@ -1679,7 +1904,7 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             musicAudio.load();
         } catch (error) {
-            console.warn(
+            console.error(
                 "Audio load error:",
                 error
             );
@@ -1702,18 +1927,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
             await musicAudio.play();
+
+            updatePlayButton();
         } catch (error) {
-            console.warn(
+            console.error(
                 "Music playback failed:",
                 error
             );
+
+            console.error(
+                "Current audio URL:",
+                musicAudio.currentSrc ||
+                musicAudio.src
+            );
+
+            updatePlayButton();
 
             showToast(
                 "Не вдалося відтворити трек"
             );
         }
-
-        updatePlayButton();
     }
 
     function pauseMusic() {
@@ -1733,8 +1966,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!tracks.length) return;
 
         const nextIndex =
-            (currentTrackIndex + 1) %
-            tracks.length;
+            (
+                currentTrackIndex + 1
+            ) % tracks.length;
 
         loadTrack(
             nextIndex,
@@ -1758,18 +1992,21 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
-    // ---------------------------------------------------------
+    // =========================================================
     // LOAD MUSIC FROM API
-    // ---------------------------------------------------------
+    // =========================================================
 
     async function loadMusic() {
         let apiTracks = [];
 
         try {
             const response =
-                await fetch("/api/music", {
-                    cache: "no-store"
-                });
+                await fetch(
+                    "/api/music",
+                    {
+                        cache: "no-store"
+                    }
+                );
 
             if (response.ok) {
                 const data =
@@ -1785,18 +2022,50 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         } catch (error) {
             console.warn(
-                "Music API unavailable."
+                "Music API unavailable. Using fallback."
             );
         }
 
-        tracks = apiTracks
-            .map(normalizeTrack)
-            .filter(Boolean);
-
-        if (!tracks.length) {
-            tracks = fallbackTracks
+        tracks =
+            apiTracks
                 .map(normalizeTrack)
                 .filter(Boolean);
+
+        if (!tracks.length) {
+            tracks =
+                fallbackTracks
+                    .map(normalizeTrack)
+                    .filter(Boolean);
+        }
+
+        // If API returned tracks, but their paths
+        // are malformed, use our known local files.
+        const invalidLocalPath =
+            tracks.some(
+                (track) =>
+                    !track.file ||
+                    (
+                        !track.file.startsWith(
+                            "http://"
+                        ) &&
+                        !track.file.startsWith(
+                            "https://"
+                        ) &&
+                        !track.file.startsWith(
+                            "/music/"
+                        )
+                    )
+            );
+
+        if (invalidLocalPath) {
+            console.warn(
+                "Invalid music paths from API. Using fallback tracks."
+            );
+
+            tracks =
+                fallbackTracks
+                    .map(normalizeTrack)
+                    .filter(Boolean);
         }
 
         createVisualizerBars();
@@ -1814,11 +2083,20 @@ document.addEventListener("DOMContentLoaded", () => {
             "Music tracks:",
             tracks.length
         );
+
+        console.table(
+            tracks.map((track) => ({
+                title: track.title,
+                artist: track.artist,
+                file: track.file,
+                url: getTrackUrl(track.file)
+            }))
+        );
     }
 
-    // ---------------------------------------------------------
+    // =========================================================
     // PLAYER EVENTS
-    // ---------------------------------------------------------
+    // =========================================================
 
     if (playerPlay) {
         playerPlay.addEventListener(
@@ -1926,12 +2204,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 ) &&
                 musicAudio.duration > 0
             ) {
-                playerSeek.value = String(
-                    (
-                        musicAudio.currentTime /
-                        musicAudio.duration
-                    ) * 100
-                );
+                playerSeek.value =
+                    String(
+                        (
+                            musicAudio.currentTime /
+                            musicAudio.duration
+                        ) * 100
+                    );
             }
         }
     );
@@ -1960,14 +2239,24 @@ document.addEventListener("DOMContentLoaded", () => {
     musicAudio.addEventListener(
         "error",
         () => {
-            console.warn(
-                "Audio error:",
+            console.error(
+                "Audio element error:",
                 musicAudio.error
+            );
+
+            console.error(
+                "Failed audio URL:",
+                musicAudio.currentSrc ||
+                musicAudio.src
             );
 
             updatePlayButton();
         }
     );
+
+    // =========================================================
+    // START MUSIC SYSTEM
+    // =========================================================
 
     loadMusic();
 
@@ -2036,6 +2325,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     console.log("♡ little world loaded");
+
     console.log(
         "Initial music volume:",
         `${savedVolumePercent}%`
