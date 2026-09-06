@@ -1,1427 +1,1164 @@
-(() => {
-  "use strict";
+```javascript
+document.addEventListener("DOMContentLoaded", () => {
+    // =========================================================
+    // LITTLE WORLD ♡
+    // Music + cats + room + mini games
+    // The ONLY sound on the website is music.
+    // =========================================================
 
-  const FALLBACK_CATS = [
-    {
-      id: "milo",
-      name: "Milo",
-      breed: "British Shorthair",
-      color: "#b9b9c5",
-      description: "Спокійний, пухнастий і дуже любить увагу."
-    },
-    {
-      id: "luna",
-      name: "Luna",
-      breed: "Ragdoll",
-      color: "#f4dfd2",
-      description: "Маленька принцеса, яка завжди хоче обіймашки."
-    },
-    {
-      id: "simba",
-      name: "Simba",
-      breed: "Orange Cat",
-      color: "#f2b06b",
-      description: "Рудий хаос, який ніколи не сидить на місці."
-    },
-    {
-      id: "nala",
-      name: "Nala",
-      breed: "Calico",
-      color: "#fff6e9",
-      description: "Ніжна киця з характером."
-    },
-    {
-      id: "momo",
-      name: "Momo",
-      breed: "Pink Cat",
-      color: "#f3b6ca",
-      description: "Маленька сонька, яка обожнює затишок."
-    }
-  ];
+    const $ = (selector, parent = document) => parent.querySelector(selector);
+    const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
 
-  const FALLBACK_MUSIC = [
-    {
-      id: "charisma",
-      title: "Charisma",
-      artist: "Jann",
-      file: "/music/Jann%20-%20Charisma.mp3",
-      spotify: "https://open.spotify.com/search/Jann%20Charisma"
-    },
-    {
-      id: "emperors-new-clothes",
-      title: "Emperor's New Clothes",
-      artist: "Jann",
-      file: "/music/Jann%20-%20Emperor's%20New%20Clothes.mp3",
-      spotify: "https://open.spotify.com/search/Jann%20Emperor%27s%20New%20Clothes"
-    },
-    {
-      id: "gladiator",
-      title: "Gladiator",
-      artist: "Jann",
-      file: "/music/Jann%20-%20Gladiator.mp3",
-      spotify: "https://open.spotify.com/search/Jann%20Gladiator"
-    },
-    {
-      id: "lookatme",
-      title: "Lookatme",
-      artist: "Jann",
-      file: "/music/Jann%20-%20Lookatme.mp3",
-      spotify: "https://open.spotify.com/search/Jann%20Lookatme"
-    },
-    {
-      id: "need-a-break",
-      title: "Need A Break",
-      artist: "Jann",
-      file: "/music/Jann%20-%20Need%20A%20Break.mp3",
-      spotify: "https://open.spotify.com/search/Jann%20Need%20A%20Break"
-    },
-    {
-      id: "promise",
-      title: "Promise",
-      artist: "Jann",
-      file: "/music/Jann%20-%20Promise.mp3",
-      spotify: "https://open.spotify.com/search/Jann%20Promise"
-    },
-    {
-      id: "smile",
-      title: "Smile",
-      artist: "Jann",
-      file: "/music/Jann%20-%20Smile.mp3",
-      spotify: "https://open.spotify.com/search/Jann%20Smile"
-    },
-    {
-      id: "kisskiss",
-      title: "Kisskiss",
-      artist: "Jann",
-      file: "/music/Jann%20Kisskiss.mp3",
-      spotify: "https://open.spotify.com/search/Jann%20Kisskiss"
-    }
-  ];
+    // =========================================================
+    // BASIC HELPERS
+    // =========================================================
 
-  let cats = [];
-  let music = [];
+    const safeText = (value, fallback = "") => {
+        return value === undefined || value === null ? fallback : String(value);
+    };
 
-  let currentTrack = 0;
-  let audio = null;
+    const formatTime = (seconds) => {
+        if (!Number.isFinite(seconds)) return "0:00";
 
-  let catchTimer = null;
-  let catchRunning = false;
-  let catchScore = 0;
-  let catchBest = Number(
-    localStorage.getItem("littleWorldCatchBest") || 0
-  );
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
 
-  let memoryCards = [];
-  let memoryFirst = null;
-  let memorySecond = null;
-  let memoryLocked = false;
-  let memoryMoves = 0;
-  let memoryFound = 0;
+        return `${mins}:${String(secs).padStart(2, "0")}`;
+    };
 
-  let petHappiness = 0;
-  let lampOn = false;
+    // =========================================================
+    // BACKGROUND
+    // =========================================================
 
-  const $ = selector => document.querySelector(selector);
-  const $$ = selector => Array.from(document.querySelectorAll(selector));
+    function createStars() {
+        const stars = $("#stars");
+        if (!stars) return;
 
-  function escapeHTML(value) {
-    return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
+        stars.innerHTML = "";
 
-  function getJSON(url, fallback) {
-    return fetch(url, { cache: "no-cache" })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("HTTP " + response.status);
+        const fragment = document.createDocumentFragment();
+
+        for (let i = 0; i < 90; i++) {
+            const star = document.createElement("span");
+
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            star.style.animationDelay = `${Math.random() * 5}s`;
+            star.style.animationDuration = `${2 + Math.random() * 4}s`;
+
+            fragment.appendChild(star);
         }
 
-        return response.json();
-      })
-      .catch(() => fallback);
-  }
-
-  function postJSON(url, body) {
-    return fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(body)
-    }).catch(() => null);
-  }
-
-  function toast(message) {
-    const element = $("#toast");
-
-    if (!element) {
-      return;
+        stars.appendChild(fragment);
     }
 
-    element.textContent = message;
-    element.classList.add("is-visible", "show");
+    function createHeroHearts() {
+        const container = $("#heroHearts");
+        if (!container) return;
 
-    clearTimeout(element._toastTimer);
+        container.innerHTML = "";
 
-    element._toastTimer = setTimeout(() => {
-      element.classList.remove("is-visible", "show");
-    }, 1800);
-  }
+        const fragment = document.createDocumentFragment();
 
-  function initNavigation() {
-    const burger = $("#navBurger");
-    const links = $("#navLinks");
-
-    if (burger && links) {
-      burger.addEventListener("click", () => {
-        const open = links.classList.toggle("is-open");
-
-        burger.classList.toggle("is-open", open);
-        burger.setAttribute("aria-expanded", String(open));
-      });
-    }
-
-    $$(".nav__link, .nav__brand, .hero__actions a, .scroll-cue")
-      .forEach(link => {
-        link.addEventListener("click", () => {
-          if (links) {
-            links.classList.remove("is-open");
-          }
-
-          if (burger) {
-            burger.classList.remove("is-open");
-            burger.setAttribute("aria-expanded", "false");
-          }
-        });
-      });
-  }
-
-  function initBackground() {
-    const stars = $("#stars");
-
-    if (stars) {
-      stars.innerHTML = "";
-
-      for (let i = 0; i < 55; i++) {
-        const star = document.createElement("span");
-
-        star.className = "star";
-        star.style.left = Math.random() * 100 + "%";
-        star.style.top = Math.random() * 100 + "%";
-        star.style.animationDelay = Math.random() * 5 + "s";
-        star.style.animationDuration =
-          2 + Math.random() * 4 + "s";
-
-        stars.appendChild(star);
-      }
-    }
-
-    const hearts = $("#heroHearts");
-
-    if (hearts) {
-      hearts.innerHTML = "";
-
-      for (let i = 0; i < 18; i++) {
-        const heart = document.createElement("span");
-
-        heart.className = "floating-heart";
-        heart.textContent = "♡";
-        heart.style.left = Math.random() * 100 + "%";
-        heart.style.top = Math.random() * 100 + "%";
-        heart.style.animationDelay = Math.random() * 5 + "s";
-        heart.style.animationDuration =
-          5 + Math.random() * 5 + "s";
-
-        hearts.appendChild(heart);
-      }
-    }
-  }
-
-  function initReveal() {
-    const elements = $$(".reveal, [data-reveal]");
-
-    if (!("IntersectionObserver" in window)) {
-      elements.forEach(element => {
-        element.classList.add("is-visible");
-      });
-
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      {
-        threshold: 0.08
-      }
-    );
-
-    elements.forEach(element => observer.observe(element));
-  }
-
-  function catSVG(cat) {
-    const color = cat.color || "#f3b6ca";
-
-    return `
-      <svg
-        class="cat-card__portrait"
-        viewBox="0 0 100 100"
-        aria-hidden="true"
-      >
-        <path
-          d="M24 42 L22 16 L42 31 Q50 27 58 31 L78 16 L76 42
-             Q84 52 78 69 Q70 86 50 87 Q30 86 22 69 Q16 52 24 42Z"
-          fill="${escapeHTML(color)}"
-          stroke="#e59cb8"
-          stroke-width="2.5"
-        />
-
-        <circle
-          cx="38"
-          cy="51"
-          r="4"
-          fill="#493b42"
-        />
-
-        <circle
-          cx="62"
-          cy="51"
-          r="4"
-          fill="#493b42"
-        />
-
-        <path
-          d="M45 63 Q50 69 55 63"
-          fill="none"
-          stroke="#493b42"
-          stroke-width="2"
-          stroke-linecap="round"
-        />
-
-        <path
-          d="M25 61 L8 57 M25 66 L8 67
-             M75 61 L92 57 M75 66 L92 67"
-          stroke="#493b42"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          opacity=".55"
-        />
-
-        <path
-          d="M45 59 Q50 56 55 59 Q50 65 45 59Z"
-          fill="#e59cb8"
-        />
-      </svg>
-    `;
-  }
-
-  function renderCats() {
-    const grid = $("#catsGrid");
-
-    if (!grid) {
-      return;
-    }
-
-    grid.innerHTML = "";
-
-    cats.forEach((cat, index) => {
-      const card = document.createElement("article");
-
-      card.className = "cat-card";
-
-      card.style.setProperty(
-        "--tilt",
-        (
-          (index % 2 ? 1 : -1) *
-          (1 + index % 3)
-        ) + "deg"
-      );
-
-      card.innerHTML = `
-        <div class="cat-card__hearts"></div>
-        <div class="cat-card__reaction"></div>
-
-        ${catSVG(cat)}
-
-        <div class="cat-card__content">
-          <h3>${escapeHTML(cat.name || "Kitty")}</h3>
-
-          <p class="cat-card__breed">
-            ${escapeHTML(cat.breed || "Cute cat")}
-          </p>
-
-          <p class="cat-card__description">
-            ${escapeHTML(
-              cat.description ||
-              "Маленький пухнастий друг ♡"
-            )}
-          </p>
-
-          <button
-            type="button"
-            class="cat-card__button"
-          >
-            Pet ♡
-          </button>
-        </div>
-      `;
-
-      const button =
-        card.querySelector(".cat-card__button");
-
-      const reaction =
-        card.querySelector(".cat-card__reaction");
-
-      const hearts =
-        card.querySelector(".cat-card__hearts");
-
-      if (!button) {
-        grid.appendChild(card);
-        return;
-      }
-
-      button.addEventListener("click", event => {
-        event.preventDefault();
-        event.stopPropagation();
-
-        if (reaction) {
-          reaction.textContent = "♡ мур-мур ♡";
-          reaction.classList.add("show");
-
-          setTimeout(() => {
-            reaction.classList.remove("show");
-          }, 1200);
-        }
-
-        if (hearts) {
-          for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 18; i++) {
             const heart = document.createElement("span");
 
             heart.textContent = "♡";
-            heart.className = "mini-heart";
-            heart.style.left =
-              20 + Math.random() * 60 + "%";
-            heart.style.animationDelay =
-              i * 80 + "ms";
+            heart.style.left = `${Math.random() * 100}%`;
+            heart.style.top = `${Math.random() * 100}%`;
+            heart.style.animationDelay = `${Math.random() * 6}s`;
+            heart.style.animationDuration = `${5 + Math.random() * 5}s`;
 
-            hearts.appendChild(heart);
-
-            setTimeout(() => {
-              heart.remove();
-            }, 1400);
-          }
+            fragment.appendChild(heart);
         }
 
-        postJSON("/api/stats/pet", {
-          cat: cat.id || cat.name
+        container.appendChild(fragment);
+    }
+
+    createStars();
+    createHeroHearts();
+
+    // =========================================================
+    // NAVIGATION
+    // =========================================================
+
+    const navBurger = $("#navBurger");
+    const navLinks = $("#navLinks");
+
+    if (navBurger && navLinks) {
+        navBurger.addEventListener("click", () => {
+            navLinks.classList.toggle("is-open");
+            navBurger.classList.toggle("is-open");
         });
 
-        toast(
-          `${cat.name || "Котик"} отримав погладжування ♡`
-        );
-      });
+        $$(".nav__link").forEach(link => {
+            link.addEventListener("click", () => {
+                navLinks.classList.remove("is-open");
+                navBurger.classList.remove("is-open");
+            });
+        });
+    }
 
-      grid.appendChild(card);
-    });
-  }
+    // =========================================================
+    // CATS
+    // =========================================================
 
-  function initRoom() {
-    const objects = [
-      ["#obj-window", "Вікно", "window"],
-      ["#obj-lamp", "Лампа", "lamp"],
-      ["#obj-plant", "Рослинка", "plant"],
-      ["#obj-bed", "Ліжечко", "bed"],
-      ["#obj-toy", "Іграшка-рибка", "toy"],
-      ["#obj-bowl", "Миска", "bowl"]
-    ];
+    const catsGrid = $("#catsGrid");
 
-    objects.forEach(([selector, name, action]) => {
-      const object = $(selector);
+    async function loadCats() {
+        if (!catsGrid) return;
 
-      if (!object) {
-        return;
-      }
+        try {
+            const response = await fetch("/api/cats", {
+                cache: "no-store"
+            });
 
-      object.addEventListener("click", event => {
-        event.preventDefault();
-        roomReaction(action, name);
-      });
+            if (!response.ok) {
+                throw new Error(`Cats API error: ${response.status}`);
+            }
 
-      object.addEventListener("keydown", event => {
-        if (
-          event.key === "Enter" ||
-          event.key === " "
-        ) {
-          event.preventDefault();
-          roomReaction(action, name);
+            const cats = await response.json();
+
+            if (!Array.isArray(cats)) return;
+
+            catsGrid.innerHTML = "";
+
+            cats.forEach((cat, index) => {
+                const article = document.createElement("article");
+                article.className = "cat-card";
+
+                const name = safeText(cat.name, `Cat ${index + 1}`);
+                const description = safeText(
+                    cat.description,
+                    "A very cute little cat ♡"
+                );
+
+                const emoji = safeText(cat.emoji, "🐱");
+
+                article.innerHTML = `
+                    <div class="cat-card__image">
+                        ${
+                            cat.image
+                                ? `<img src="${cat.image}" alt="${name}" loading="lazy">`
+                                : `<div class="cat-card__emoji">${emoji}</div>`
+                        }
+                    </div>
+
+                    <div class="cat-card__content">
+                        <h3>${name}</h3>
+                        <p>${description}</p>
+
+                        <button class="cat-card__button" type="button">
+                            Pet ♡
+                        </button>
+                    </div>
+                `;
+
+                const button = $(".cat-card__button", article);
+
+                if (button) {
+                    button.addEventListener("click", () => {
+                        button.classList.add("is-petted");
+
+                        setTimeout(() => {
+                            button.classList.remove("is-petted");
+                        }, 450);
+
+                        showFloatingHeart(button);
+                    });
+                }
+
+                catsGrid.appendChild(article);
+            });
+        } catch (error) {
+            console.warn("Could not load cats:", error);
         }
-      });
-    });
-  }
+    }
 
-  function roomReaction(action, name) {
-    const cat = $("#roomCat");
-    const caption = $("#roomCaption");
-    const emote = $(".room__cat-emote");
+    function showFloatingHeart(element) {
+        const heart = document.createElement("span");
 
-    const positions = {
-      window: "translate(170,300)",
-      lamp: "translate(330,330)",
-      plant: "translate(640,300)",
-      bed: "translate(560,330)",
-      toy: "translate(410,330)",
-      bowl: "translate(600,390)"
+        heart.textContent = "♡";
+        heart.style.position = "fixed";
+        heart.style.pointerEvents = "none";
+        heart.style.zIndex = "9999";
+
+        const rect = element.getBoundingClientRect();
+
+        heart.style.left = `${rect.left + rect.width / 2}px`;
+        heart.style.top = `${rect.top}px`;
+        heart.style.fontSize = "24px";
+
+        document.body.appendChild(heart);
+
+        heart.animate(
+            [
+                {
+                    transform: "translate(-50%, 0) scale(.8)",
+                    opacity: 1
+                },
+                {
+                    transform: "translate(-50%, -70px) scale(1.3)",
+                    opacity: 0
+                }
+            ],
+            {
+                duration: 700,
+                easing: "ease-out"
+            }
+        ).finished.then(() => heart.remove());
+    }
+
+    loadCats();
+
+    // =========================================================
+    // ROOM
+    // =========================================================
+
+    const roomCaption = $("#roomCaption");
+
+    const roomMessages = {
+        window: "The world outside looks soft today ♡",
+        lamp: "A little light makes everything cozier.",
+        plant: "The plant is doing its best 🌱",
+        bed: "Definitely the comfiest place here.",
+        toy: "Someone forgot their favorite toy.",
+        bowl: "Someone has been here recently..."
     };
 
-    if (cat && positions[action]) {
-      cat.style.transition =
-        "transform .55s cubic-bezier(.2,.8,.2,1)";
+    function setRoomCaption(text) {
+        if (!roomCaption) return;
 
-      cat.setAttribute(
-        "transform",
-        positions[action]
-      );
-    }
+        roomCaption.textContent = text;
 
-    if (caption) {
-      caption.textContent =
-        `${name} — котик вже тут ♡`;
-    }
-
-    if (emote) {
-      const messages = {
-        window: "☁",
-        lamp: "✨",
-        plant: "🌱",
-        bed: "♡",
-        toy: "!",
-        bowl: "♡"
-      };
-
-      emote.textContent =
-        messages[action] || "♡";
-
-      emote.setAttribute("opacity", "1");
-
-      setTimeout(() => {
-        emote.setAttribute("opacity", "0");
-      }, 1000);
-    }
-
-    if (action === "lamp") {
-      lampOn = !lampOn;
-
-      const glow = $("#lampGlow");
-      const bulb = $("#lampBulb");
-
-      if (glow) {
-        glow.style.opacity =
-          lampOn ? "0.55" : "0";
-      }
-
-      if (bulb) {
-        bulb.setAttribute(
-          "fill",
-          lampOn ? "#ffe79b" : "#fff3c4"
+        roomCaption.animate(
+            [
+                { opacity: 0.35 },
+                { opacity: 1 }
+            ],
+            {
+                duration: 300,
+                easing: "ease-out"
+            }
         );
-      }
-
-      /*
-       * Не додаємо lights-off до body,
-       * щоб кімната не ставала чорною.
-       */
     }
 
-    if (action === "window") {
-      const sky = $("#windowSky");
+    Object.entries(roomMessages).forEach(([object, message]) => {
+        const element = $(`#obj-${object}`);
 
-      if (sky) {
-        const current =
-          sky.getAttribute("fill");
+        if (!element) return;
 
-        sky.setAttribute(
-          "fill",
-          current === "#cfe7ff"
-            ? "#d9c9ef"
-            : "#cfe7ff"
-        );
-      }
-    }
+        element.style.cursor = "pointer";
 
-    postJSON("/api/stats/pet", {
-      cat: "room-" + action
-    });
-
-    toast(`${name} ♡`);
-  }
-
-  function initGames() {
-    initGameTabs();
-    initCatchGame();
-    initMemoryGame();
-    initPetGame();
-  }
-
-  function initGameTabs() {
-    const tabs = $$(".games__tab");
-    const panels = $$(".game-panel");
-
-    tabs.forEach(tab => {
-      tab.addEventListener("click", () => {
-        const target = tab.dataset.game;
-
-        tabs.forEach(item => {
-          const active = item === tab;
-
-          item.classList.toggle(
-            "is-active",
-            active
-          );
-
-          item.setAttribute(
-            "aria-selected",
-            String(active)
-          );
+        element.addEventListener("click", () => {
+            setRoomCaption(message);
         });
+    });
 
-        panels.forEach(panel => {
-          panel.classList.toggle(
-            "is-active",
-            panel.id === "game-" + target
-          );
+    // =========================================================
+    // ROOM CAT
+    // =========================================================
+
+    const roomCat = $("#roomCat");
+
+    if (roomCat) {
+        roomCat.addEventListener("click", () => {
+            roomCat.classList.add("is-happy");
+
+            if (roomCaption) {
+                setRoomCaption("The little cat is very happy ♡");
+            }
+
+            setTimeout(() => {
+                roomCat.classList.remove("is-happy");
+            }, 700);
         });
-      });
-    });
-  }
-
-  function initCatchGame() {
-    const start = $("#catchStart");
-    const cat = $("#catchCat");
-    const stage = $("#catchStage");
-    const score = $("#catchScore");
-    const best = $("#catchBest");
-    const time = $("#catchTime");
-    const hint = $("#catchHint");
-
-    if (!start || !cat || !stage) {
-      return;
     }
 
-    if (best) {
-      best.textContent = String(catchBest);
-    }
+    // =========================================================
+    // GAMES TABS
+    // =========================================================
 
-    function moveCat() {
-      const rect =
-        stage.getBoundingClientRect();
+    const gameTabs = $$(".games__tab");
 
-      const maxX = Math.max(
-        0,
-        rect.width - cat.offsetWidth - 10
-      );
+    gameTabs.forEach(tab => {
+        tab.addEventListener("click", () => {
+            const gameName = tab.dataset.game;
 
-      const maxY = Math.max(
-        0,
-        rect.height - cat.offsetHeight - 10
-      );
+            gameTabs.forEach(item => {
+                item.classList.remove("is-active");
+            });
 
-      cat.style.left =
-        5 + Math.random() * maxX + "px";
+            tab.classList.add("is-active");
 
-      cat.style.top =
-        5 + Math.random() * maxY + "px";
-    }
+            $$(".game-panel").forEach(panel => {
+                panel.classList.remove("is-active");
+            });
 
-    cat.addEventListener("click", () => {
-      if (!catchRunning) {
-        return;
-      }
+            const target = $(`#game-${gameName}`);
 
-      catchScore++;
-
-      if (score) {
-        score.textContent =
-          String(catchScore);
-      }
-
-      moveCat();
-
-      postJSON("/api/stats/game", {
-        game: "catch",
-        score: catchScore
-      });
+            if (target) {
+                target.classList.add("is-active");
+            }
+        });
     });
 
-    start.addEventListener("click", () => {
-      clearInterval(catchTimer);
+    // =========================================================
+    // CATCH GAME
+    // =========================================================
 
-      catchScore = 0;
-      catchRunning = true;
+    const catchStart = $("#catchStart");
+    const catchStage = $("#catchStage");
+    const catchCat = $("#catchCat");
+    const catchScore = $("#catchScore");
+    const catchBest = $("#catchBest");
+    const catchTime = $("#catchTime");
+    const catchHint = $("#catchHint");
 
-      if (score) {
-        score.textContent = "0";
-      }
+    let catchScoreValue = 0;
+    let catchBestValue = Number(localStorage.getItem("little-world-catch-best") || 0);
+    let catchTimeValue = 15;
+    let catchTimer = null;
+    let catchRunning = false;
 
-      if (time) {
-        time.textContent = "30";
-      }
+    if (catchBest) {
+        catchBest.textContent = catchBestValue;
+    }
 
-      if (hint) {
-        hint.textContent =
-          "Лови котика! 🐱";
-      }
+    function moveCatchCat() {
+        if (!catchCat || !catchStage) return;
 
-      moveCat();
+        const stageRect = catchStage.getBoundingClientRect();
 
-      let remaining = 30;
+        const maxX = Math.max(20, stageRect.width - 100);
+        const maxY = Math.max(20, stageRect.height - 100);
 
-      catchTimer = setInterval(() => {
-        remaining--;
+        catchCat.style.left = `${Math.random() * maxX}px`;
+        catchCat.style.top = `${Math.random() * maxY}px`;
+    }
 
-        if (time) {
-          time.textContent =
-            String(remaining);
+    function stopCatchGame() {
+        catchRunning = false;
+
+        if (catchTimer) {
+            clearInterval(catchTimer);
+            catchTimer = null;
         }
 
-        if (remaining <= 0) {
-          clearInterval(catchTimer);
-          catchRunning = false;
+        if (catchHint) {
+            catchHint.textContent = "Nice! Press start to play again ♡";
+        }
 
-          if (catchScore > catchBest) {
-            catchBest = catchScore;
-
+        if (catchScoreValue > catchBestValue) {
+            catchBestValue = catchScoreValue;
             localStorage.setItem(
-              "littleWorldCatchBest",
-              String(catchBest)
+                "little-world-catch-best",
+                String(catchBestValue)
             );
 
-            if (best) {
-              best.textContent =
-                String(catchBest);
+            if (catchBest) {
+                catchBest.textContent = catchBestValue;
             }
-          }
-
-          if (hint) {
-            hint.textContent =
-              `Гру завершено! Рахунок: ${catchScore} ♡`;
-          }
-
-          toast(
-            `Гру завершено — ${catchScore} очок ♡`
-          );
         }
-      }, 1000);
-
-      toast("Лови котика! 🐱");
-    });
-  }
-
-  function initMemoryGame() {
-    const start = $("#memoryStart");
-    const grid = $("#memoryGrid");
-    const moves = $("#memoryMoves");
-    const found = $("#memoryFound");
-
-    if (!start || !grid) {
-      return;
     }
 
-    const symbols = [
-      "♡",
-      "🐱",
-      "🌸",
-      "⭐",
-      "🎀",
-      "☁️",
-      "🐾",
-      "🍓"
-    ];
+    function startCatchGame() {
+        if (!catchStage || !catchCat) return;
+
+        catchRunning = true;
+        catchScoreValue = 0;
+        catchTimeValue = 15;
+
+        if (catchScore) catchScore.textContent = "0";
+        if (catchTime) catchTime.textContent = "15";
+        if (catchHint) catchHint.textContent = "Catch the cat! ♡";
+
+        moveCatchCat();
+
+        if (catchTimer) {
+            clearInterval(catchTimer);
+        }
+
+        catchTimer = setInterval(() => {
+            catchTimeValue--;
+
+            if (catchTime) {
+                catchTime.textContent = String(catchTimeValue);
+            }
+
+            if (catchTimeValue <= 0) {
+                stopCatchGame();
+            }
+        }, 1000);
+    }
+
+    if (catchStart) {
+        catchStart.addEventListener("click", startCatchGame);
+    }
+
+    if (catchCat) {
+        catchCat.addEventListener("click", () => {
+            if (!catchRunning) return;
+
+            catchScoreValue++;
+
+            if (catchScore) {
+                catchScore.textContent = String(catchScoreValue);
+            }
+
+            moveCatchCat();
+        });
+    }
+
+    // =========================================================
+    // MEMORY GAME
+    // =========================================================
+
+    const memoryStart = $("#memoryStart");
+    const memoryGrid = $("#memoryGrid");
+    const memoryMoves = $("#memoryMoves");
+    const memoryFound = $("#memoryFound");
+
+    const memorySymbols = ["🐱", "🐶", "🐰", "🦊", "🐻", "🐼"];
+
+    let memoryCards = [];
+    let memoryFirst = null;
+    let memoryLocked = false;
+    let memoryMovesValue = 0;
+    let memoryFoundValue = 0;
 
     function shuffle(array) {
-      const result = array.slice();
+        const result = [...array];
 
-      for (
-        let i = result.length - 1;
-        i > 0;
-        i--
-      ) {
-        const j =
-          Math.floor(
-            Math.random() * (i + 1)
-          );
-
-        [result[i], result[j]] =
-          [result[j], result[i]];
-      }
-
-      return result;
-    }
-
-    function newGame() {
-      memoryCards = [];
-      memoryFirst = null;
-      memorySecond = null;
-      memoryLocked = false;
-      memoryMoves = 0;
-      memoryFound = 0;
-
-      if (moves) {
-        moves.textContent = "0";
-      }
-
-      if (found) {
-        found.textContent = "0";
-      }
-
-      grid.innerHTML = "";
-
-      shuffle([
-        ...symbols,
-        ...symbols
-      ]).forEach((symbol, index) => {
-        const button =
-          document.createElement("button");
-
-        button.type = "button";
-        button.className = "memory-card";
-        button.dataset.index =
-          String(index);
-        button.dataset.symbol =
-          symbol;
-
-        button.innerHTML = `
-          <span class="memory-card__front">?</span>
-          <span class="memory-card__back">${symbol}</span>
-        `;
-
-        button.addEventListener(
-          "click",
-          () => flipMemory(button)
-        );
-
-        memoryCards.push(button);
-        grid.appendChild(button);
-      });
-    }
-
-    function flipMemory(card) {
-      if (
-        memoryLocked ||
-        card.classList.contains("open") ||
-        card.classList.contains("matched")
-      ) {
-        return;
-      }
-
-      card.classList.add("open");
-
-      if (!memoryFirst) {
-        memoryFirst = card;
-        return;
-      }
-
-      memorySecond = card;
-      memoryLocked = true;
-      memoryMoves++;
-
-      if (moves) {
-        moves.textContent =
-          String(memoryMoves);
-      }
-
-      if (
-        memoryFirst.dataset.symbol ===
-        memorySecond.dataset.symbol
-      ) {
-        memoryFirst.classList.add(
-          "matched"
-        );
-
-        memorySecond.classList.add(
-          "matched"
-        );
-
-        memoryFound++;
-
-        if (found) {
-          found.textContent =
-            String(memoryFound);
+        for (let i = result.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [result[i], result[j]] = [result[j], result[i]];
         }
+
+        return result;
+    }
+
+    function startMemoryGame() {
+        if (!memoryGrid) return;
 
         memoryFirst = null;
-        memorySecond = null;
         memoryLocked = false;
+        memoryMovesValue = 0;
+        memoryFoundValue = 0;
 
-        if (
-          memoryFound === symbols.length
-        ) {
-          toast(
-            "Усі пари знайдено! ♡"
-          );
-        }
+        if (memoryMoves) memoryMoves.textContent = "0";
+        if (memoryFound) memoryFound.textContent = "0";
 
-        return;
-      }
+        const deck = shuffle([...memorySymbols, ...memorySymbols]);
 
-      setTimeout(() => {
-        if (memoryFirst) {
-          memoryFirst.classList.remove(
-            "open"
-          );
-        }
+        memoryGrid.innerHTML = "";
 
-        if (memorySecond) {
-          memorySecond.classList.remove(
-            "open"
-          );
-        }
+        deck.forEach((symbol, index) => {
+            const button = document.createElement("button");
 
-        memoryFirst = null;
-        memorySecond = null;
-        memoryLocked = false;
-      }, 700);
+            button.type = "button";
+            button.className = "memory-card";
+            button.dataset.index = String(index);
+            button.dataset.symbol = symbol;
+
+            button.innerHTML = `
+                <span class="memory-card__front">♡</span>
+                <span class="memory-card__back">${symbol}</span>
+            `;
+
+            button.addEventListener("click", () => handleMemoryCard(button));
+
+            memoryGrid.appendChild(button);
+        });
+
+        memoryCards = $$(".memory-card", memoryGrid);
     }
 
-    start.addEventListener(
-      "click",
-      newGame
-    );
+    function handleMemoryCard(card) {
+        if (memoryLocked) return;
+        if (card.classList.contains("is-open")) return;
+        if (card.classList.contains("is-found")) return;
 
-    newGame();
-  }
+        card.classList.add("is-open");
 
-  function initPetGame() {
-    const cat = $("#petBigCat");
-    const face = $("#petBigCatFace");
-    const fill = $("#petFill");
-    const reset = $("#petReset");
-    const hint = $("#petHint");
-
-    if (!cat) {
-      return;
-    }
-
-    function update() {
-      if (fill) {
-        fill.style.width =
-          Math.min(
-            100,
-            petHappiness
-          ) + "%";
-      }
-
-      if (hint) {
-        if (petHappiness >= 100) {
-          hint.textContent =
-            "Котик максимально щасливий! ♡";
-        } else {
-          hint.textContent =
-            `Щастя котика: ${petHappiness}% ♡`;
+        if (!memoryFirst) {
+            memoryFirst = card;
+            return;
         }
-      }
 
-      if (face) {
-        face.textContent =
-          petHappiness >= 80
-            ? "(=^･ω･^=)♡"
-            : "(=^･ω･^=)";
-      }
+        memoryMovesValue++;
+
+        if (memoryMoves) {
+            memoryMoves.textContent = String(memoryMovesValue);
+        }
+
+        const second = card;
+
+        if (memoryFirst.dataset.symbol === second.dataset.symbol) {
+            memoryFirst.classList.add("is-found");
+            second.classList.add("is-found");
+
+            memoryFoundValue++;
+
+            if (memoryFound) {
+                memoryFound.textContent = String(memoryFoundValue);
+            }
+
+            memoryFirst = null;
+
+            if (memoryFoundValue === memorySymbols.length) {
+                setTimeout(() => {
+                    if (memoryMoves) {
+                        memoryMoves.textContent = `${memoryMovesValue} ♡`;
+                    }
+                }, 300);
+            }
+
+            return;
+        }
+
+        memoryLocked = true;
+
+        setTimeout(() => {
+            memoryFirst.classList.remove("is-open");
+            second.classList.remove("is-open");
+
+            memoryFirst = null;
+            memoryLocked = false;
+        }, 650);
     }
 
-    cat.addEventListener("click", () => {
-      petHappiness =
-        Math.min(
-          100,
-          petHappiness + 5
-        );
+    if (memoryStart) {
+        memoryStart.addEventListener("click", startMemoryGame);
+    }
 
-      update();
+    // =========================================================
+    // PET GAME
+    // =========================================================
 
-      cat.animate(
-        [
-          {
-            transform: "scale(1)"
-          },
-          {
-            transform:
-              "scale(1.08) rotate(-2deg)"
-          },
-          {
-            transform:
-              "scale(1) rotate(0)"
-          }
-        ],
+    const petFill = $("#petFill");
+    const petReset = $("#petReset");
+    const petBigCat = $("#petBigCat");
+    const petBigCatFace = $("#petBigCatFace");
+    const petHint = $("#petHint");
+
+    let petValue = 0;
+
+    function updatePetGame() {
+        petValue = Math.max(0, Math.min(100, petValue));
+
+        if (petFill) {
+            petFill.style.width = `${petValue}%`;
+        }
+
+        if (petBigCatFace) {
+            if (petValue >= 80) {
+                petBigCatFace.textContent = "😸";
+            } else if (petValue >= 45) {
+                petBigCatFace.textContent = "😺";
+            } else {
+                petBigCatFace.textContent = "🐱";
+            }
+        }
+
+        if (petHint) {
+            if (petValue >= 100) {
+                petHint.textContent = "Maximum happiness! ♡";
+            } else if (petValue >= 70) {
+                petHint.textContent = "The cat is really happy!";
+            } else if (petValue >= 30) {
+                petHint.textContent = "Keep petting ♡";
+            } else {
+                petHint.textContent = "Pet the cat to make it happy!";
+            }
+        }
+    }
+
+    if (petBigCat) {
+        petBigCat.addEventListener("click", () => {
+            petValue += 8;
+            updatePetGame();
+
+            petBigCat.animate(
+                [
+                    { transform: "scale(1)" },
+                    { transform: "scale(1.06)" },
+                    { transform: "scale(1)" }
+                ],
+                {
+                    duration: 260,
+                    easing: "ease-out"
+                }
+            );
+        });
+    }
+
+    if (petReset) {
+        petReset.addEventListener("click", () => {
+            petValue = 0;
+            updatePetGame();
+        });
+    }
+
+    updatePetGame();
+
+    // =========================================================
+    // MUSIC PLAYER
+    // =========================================================
+
+    const audio = $("#player");
+
+    const playerCover = $("#playerCover");
+    const playerVisualizer = $("#playerVisualizer");
+    const vizBars = $("#vizBars");
+
+    const playerTrack = $("#playerTrack");
+    const playerArtist = $("#playerArtist");
+
+    const playerTimeCurrent = $("#playerTimeCurrent");
+    const playerTimeTotal = $("#playerTimeTotal");
+
+    const playerSeek = $("#playerSeek");
+
+    const playerPrev = $("#playerPrev");
+    const playerPlay = $("#playerPlay");
+    const playerNext = $("#playerNext");
+
+    const playerSpotify = $("#playerSpotify");
+    const playerVolume = $("#playerVolume");
+
+    const playlist = $("#playlist");
+
+    // ---------------------------------------------------------
+    // IMPORTANT:
+    // There are NO UI sounds.
+    // The audio element below is the ONLY sound source.
+    // ---------------------------------------------------------
+
+    let tracks = [];
+    let currentTrackIndex = 0;
+
+    // Start at 25%.
+    let savedVolume = localStorage.getItem("little-world-volume");
+
+    if (savedVolume !== null) {
+        savedVolume = Number(savedVolume);
+
+        if (!Number.isFinite(savedVolume)) {
+            savedVolume = 0.25;
+        }
+    } else {
+        savedVolume = 0.25;
+    }
+
+    savedVolume = Math.max(0, Math.min(1, savedVolume));
+
+    if (audio) {
+        audio.volume = savedVolume;
+        audio.muted = false;
+    }
+
+    if (playerVolume) {
+        playerVolume.value = String(Math.round(savedVolume * 100));
+    }
+
+    // ---------------------------------------------------------
+    // Fallback tracks
+    // These are used if /api/music is unavailable.
+    // ---------------------------------------------------------
+
+    const fallbackTracks = [
         {
-          duration: 300,
-          easing: "ease-out"
+            title: "Charisma",
+            artist: "Jann",
+            file: "/music/Jann%20-%20Charisma.mp3"
+        },
+        {
+            title: "Emperor's New Clothes",
+            artist: "Jann",
+            file: "/music/Jann%20-%20Emperor%27s%20New%20Clothes.mp3"
+        },
+        {
+            title: "Gladiator",
+            artist: "Jann",
+            file: "/music/Jann%20-%20Gladiator.mp3"
+        },
+        {
+            title: "Lookatme",
+            artist: "Jann",
+            file: "/music/Jann%20-%20Lookatme.mp3"
+        },
+        {
+            title: "Need A Break",
+            artist: "Jann",
+            file: "/music/Jann%20-%20Need%20A%20Break.mp3"
+        },
+        {
+            title: "Promise",
+            artist: "Jann",
+            file: "/music/Jann%20-%20Promise.mp3"
+        },
+        {
+            title: "Smile",
+            artist: "Jann",
+            file: "/music/Jann%20-%20Smile.mp3"
+        },
+        {
+            title: "Kisskiss",
+            artist: "Jann",
+            file: "/music/Jann%20Kisskiss.mp3"
         }
-      );
+    ];
 
-      postJSON("/api/stats/pet", {
-        cat: "pet-game"
-      });
-    });
+    function normalizeTrack(track) {
+        if (!track) return null;
 
-    if (reset) {
-      reset.addEventListener(
-        "click",
-        () => {
-          petHappiness = 0;
-          update();
-          toast("Щастя скинуто ♡");
+        const title = safeText(
+            track.title || track.name,
+            "Unknown track"
+        );
+
+        const artist = safeText(
+            track.artist,
+            "Jann"
+        );
+
+        let file = safeText(
+            track.file || track.url || track.src,
+            ""
+        );
+
+        if (!file) return null;
+
+        file = file.replace(/\\/g, "/");
+
+        if (!file.startsWith("/") && !file.startsWith("http")) {
+            file = `/${file}`;
         }
-      );
+
+        return {
+            title,
+            artist,
+            file,
+            cover: track.cover || track.image || "",
+            spotify: track.spotify || ""
+        };
     }
 
-    update();
-  }
+    async function loadMusic() {
+        if (!audio) return;
 
-  function formatTime(seconds) {
-    if (
-      !Number.isFinite(seconds) ||
-      seconds < 0
-    ) {
-      return "0:00";
-    }
+        let apiTracks = null;
 
-    const minutes =
-      Math.floor(seconds / 60);
+        try {
+            const response = await fetch("/api/music", {
+                cache: "no-store"
+            });
 
-    const secs =
-      Math.floor(seconds % 60);
+            if (response.ok) {
+                const data = await response.json();
 
-    return (
-      `${minutes}:${String(secs).padStart(2, "0")}`
-    );
-  }
-
-  function initMusic() {
-    audio = new Audio();
-    audio.preload = "metadata";
-
-    const play = $("#playerPlay");
-    const prev = $("#playerPrev");
-    const next = $("#playerNext");
-    const seek = $("#playerSeek");
-    const volume = $("#playerVolume");
-
-    const trackTitle =
-      $("#playerTrack");
-
-    const artist =
-      $("#playerArtist");
-
-    const current =
-      $("#playerTimeCurrent");
-
-    const total =
-      $("#playerTimeTotal");
-
-    const spotify =
-      $("#playerSpotify");
-
-    if (volume) {
-      audio.volume =
-        Number(volume.value) / 100;
-
-      volume.addEventListener(
-        "input",
-        () => {
-          audio.volume =
-            Number(volume.value) / 100;
+                if (Array.isArray(data)) {
+                    apiTracks = data;
+                } else if (Array.isArray(data.tracks)) {
+                    apiTracks = data.tracks;
+                }
+            }
+        } catch (error) {
+            console.warn("Music API unavailable, using local tracks.");
         }
-      );
+
+        if (apiTracks && apiTracks.length > 0) {
+            tracks = apiTracks
+                .map(normalizeTrack)
+                .filter(Boolean);
+        }
+
+        if (!tracks.length) {
+            tracks = fallbackTracks
+                .map(normalizeTrack)
+                .filter(Boolean);
+        }
+
+        if (!tracks.length) {
+            console.warn("No music tracks found.");
+            return;
+        }
+
+        renderPlaylist();
+        loadTrack(0, false);
     }
 
-    function updateInfo() {
-      const track =
-        music[currentTrack];
+    function renderPlaylist() {
+        if (!playlist) return;
 
-      if (!track) {
-        return;
-      }
+        playlist.innerHTML = "";
 
-      if (trackTitle) {
-        trackTitle.textContent =
-          track.title || "Обери трек";
-      }
+        tracks.forEach((track, index) => {
+            const item = document.createElement("div");
+            item.className = "music-item";
 
-      if (artist) {
-        artist.textContent =
-          track.artist || "Jann";
-      }
+            if (index === currentTrackIndex) {
+                item.classList.add("is-active");
+            }
 
-      if (spotify) {
-        spotify.href =
-          track.spotify ||
-          `https://open.spotify.com/search/${encodeURIComponent(
-            (track.artist || "") +
-            " " +
-            (track.title || "")
-          )}`;
-      }
+            item.innerHTML = `
+                <button class="music-item__button" type="button">
+                    <span class="music-item__number">
+                        ${String(index + 1).padStart(2, "0")}
+                    </span>
+
+                    <span class="music-item__info">
+                        <span class="music-item__title">
+                            ${track.title}
+                        </span>
+
+                        <span class="music-item__artist">
+                            ${track.artist}
+                        </span>
+                    </span>
+
+                    <span class="music-item__icon">
+                        ♡
+                    </span>
+                </button>
+            `;
+
+            const button = $(".music-item__button", item);
+
+            if (button) {
+                button.addEventListener("click", () => {
+                    loadTrack(index, true);
+                });
+            }
+
+            playlist.appendChild(item);
+        });
     }
 
     function updatePlaylistActive() {
-      $$("#playlist .music-item")
-        .forEach((item, index) => {
-          item.classList.toggle(
-            "active",
-            index === currentTrack
-          );
+        if (!playlist) return;
+
+        $$(".music-item", playlist).forEach((item, index) => {
+            item.classList.toggle(
+                "is-active",
+                index === currentTrackIndex
+            );
         });
     }
 
-    function load(
-      index,
-      autoplay = false
-    ) {
-      if (!music.length) {
-        return;
-      }
-
-      currentTrack =
-        (index + music.length) %
-        music.length;
-
-      const track =
-        music[currentTrack];
-
-      audio.src = track.file;
-      audio.load();
-
-      updateInfo();
-      updatePlaylistActive();
-
-      if (autoplay) {
-        audio.play().catch(() => {
-          toast(
-            "Натисни ▶ ще раз ♡"
-          );
-        });
-      }
+    function getTrackUrl(file) {
+        try {
+            return new URL(file, window.location.origin).href;
+        } catch {
+            return file;
+        }
     }
 
-    if (play) {
-      play.addEventListener(
-        "click",
-        () => {
-          if (!audio.src) {
-            load(currentTrack);
-          }
+    function loadTrack(index, autoplay = false) {
+        if (!audio || !tracks.length) return;
 
-          if (audio.paused) {
-            audio.play().catch(() => {
-              toast(
-                "Не вдалося запустити трек ♡"
-              );
-            });
-          } else {
-            audio.pause();
-          }
-        }
-      );
-    }
+        currentTrackIndex =
+            (index + tracks.length) % tracks.length;
 
-    if (prev) {
-      prev.addEventListener(
-        "click",
-        () => {
-          load(
-            currentTrack - 1,
-            true
-          );
-        }
-      );
-    }
+        const track = tracks[currentTrackIndex];
 
-    if (next) {
-      next.addEventListener(
-        "click",
-        () => {
-          load(
-            currentTrack + 1,
-            true
-          );
-        }
-      );
-    }
+        audio.pause();
 
-    if (seek) {
-      seek.addEventListener(
-        "input",
-        () => {
-          if (
-            !Number.isFinite(
-              audio.duration
-            ) ||
-            audio.duration <= 0
-          ) {
-            return;
-          }
+        audio.src = getTrackUrl(track.file);
+        audio.load();
 
-          audio.currentTime =
-            audio.duration *
-            (Number(seek.value) / 100);
-        }
-      );
-    }
-
-    audio.addEventListener(
-      "loadedmetadata",
-      () => {
-        if (total) {
-          total.textContent =
-            formatTime(
-              audio.duration
-            );
-        }
-      }
-    );
-
-    audio.addEventListener(
-      "timeupdate",
-      () => {
-        if (
-          !Number.isFinite(
-            audio.duration
-          ) ||
-          audio.duration <= 0
-        ) {
-          return;
+        if (playerTrack) {
+            playerTrack.textContent = track.title;
         }
 
-        if (current) {
-          current.textContent =
-            formatTime(
-              audio.currentTime
-            );
+        if (playerArtist) {
+            playerArtist.textContent = track.artist;
         }
 
-        if (total) {
-          total.textContent =
-            formatTime(
-              audio.duration
-            );
+        if (playerTimeCurrent) {
+            playerTimeCurrent.textContent = "0:00";
         }
 
-        if (seek) {
-          seek.value = String(
-            (
-              audio.currentTime /
-              audio.duration
-            ) * 100
-          );
+        if (playerTimeTotal) {
+            playerTimeTotal.textContent = "0:00";
         }
-      }
-    );
 
-    audio.addEventListener(
-      "play",
-      () => {
-        if (play) {
-          play.textContent = "❚❚";
+        if (playerSeek) {
+            playerSeek.value = "0";
+        }
+
+        if (playerCover && track.cover) {
+            playerCover.style.backgroundImage =
+                `url("${track.cover}")`;
+        }
+
+        if (playerSpotify) {
+            if (track.spotify) {
+                playerSpotify.href = track.spotify;
+                playerSpotify.style.display = "";
+            } else {
+                playerSpotify.style.display = "none";
+            }
         }
 
         updatePlaylistActive();
-      }
-    );
 
-    audio.addEventListener(
-      "pause",
-      () => {
-        if (play) {
-          play.textContent = "▶";
+        if (autoplay) {
+            playMusic();
         }
-      }
-    );
-
-    audio.addEventListener(
-      "ended",
-      () => {
-        load(
-          currentTrack + 1,
-          true
-        );
-      }
-    );
-
-    audio.addEventListener(
-      "error",
-      () => {
-        toast(
-          "Не вдалося завантажити музику :("
-        );
-      }
-    );
-
-    window.littleWorldPlayer = {
-      play: () => audio.play(),
-      pause: () => audio.pause(),
-      load
-    };
-
-    load(0, false);
-  }
-
-  function renderMusic() {
-    const playlist = $("#playlist");
-
-    if (!playlist) {
-      return;
     }
 
-    playlist.innerHTML = "";
+    async function playMusic() {
+        if (!audio || !audio.src) return;
 
-    music.forEach((track, index) => {
-      const item =
-        document.createElement("li");
+        try {
+            await audio.play();
 
-      item.className = "music-item";
-
-      item.innerHTML = `
-        <button
-          type="button"
-          class="music-item__button"
-        >
-          <span class="music-item__number">
-            ${String(index + 1).padStart(2, "0")}
-          </span>
-
-          <span class="music-item__info">
-            <strong>
-              ${escapeHTML(
-                track.title || "Track"
-              )}
-            </strong>
-
-            <small>
-              ${escapeHTML(
-                track.artist || "Jann"
-              )}
-            </small>
-          </span>
-
-          <span class="music-item__play">
-            ▶
-          </span>
-        </button>
-      `;
-
-      const button =
-        item.querySelector(
-          ".music-item__button"
-        );
-
-      if (button) {
-        button.addEventListener(
-          "click",
-          () => {
-            currentTrack = index;
-
-            if (
-              window.littleWorldPlayer
-            ) {
-              window.littleWorldPlayer.load(
-                index,
-                true
-              );
+            if (playerPlay) {
+                playerPlay.textContent = "Ⅱ";
+                playerPlay.setAttribute("aria-label", "Pause");
             }
 
-            $$("#playlist .music-item")
-              .forEach(element => {
-                element.classList.remove(
-                  "active"
+            if (playerVisualizer) {
+                playerVisualizer.classList.add("is-playing");
+            }
+
+            if (vizBars) {
+                vizBars.classList.add("is-playing");
+            }
+
+            if (playerCover) {
+                playerCover.classList.add("is-playing");
+            }
+        } catch (error) {
+            console.warn("Could not play music:", error);
+        }
+    }
+
+    function pauseMusic() {
+        if (!audio) return;
+
+        audio.pause();
+
+        if (playerPlay) {
+            playerPlay.textContent = "▶";
+            playerPlay.setAttribute("aria-label", "Play");
+        }
+
+        if (playerVisualizer) {
+            playerVisualizer.classList.remove("is-playing");
+        }
+
+        if (vizBars) {
+            vizBars.classList.remove("is-playing");
+        }
+
+        if (playerCover) {
+            playerCover.classList.remove("is-playing");
+        }
+    }
+
+    function toggleMusic() {
+        if (!audio) return;
+
+        if (audio.paused) {
+            playMusic();
+        } else {
+            pauseMusic();
+        }
+    }
+
+    function nextTrack() {
+        if (!tracks.length) return;
+
+        loadTrack(currentTrackIndex + 1, true);
+    }
+
+    function previousTrack() {
+        if (!tracks.length) return;
+
+        // If the current song is already more than 3 seconds in,
+        // pressing previous restarts it.
+        if (audio && audio.currentTime > 3) {
+            audio.currentTime = 0;
+            return;
+        }
+
+        loadTrack(currentTrackIndex - 1, true);
+    }
+
+    // ---------------------------------------------------------
+    // PLAYER BUTTONS
+    // ---------------------------------------------------------
+
+    if (playerPlay) {
+        playerPlay.addEventListener("click", toggleMusic);
+    }
+
+    if (playerNext) {
+        playerNext.addEventListener("click", nextTrack);
+    }
+
+    if (playerPrev) {
+        playerPrev.addEventListener("click", previousTrack);
+    }
+
+    // ---------------------------------------------------------
+    // PROGRESS
+    // ---------------------------------------------------------
+
+    if (audio) {
+        audio.addEventListener("loadedmetadata", () => {
+            if (playerTimeTotal) {
+                playerTimeTotal.textContent =
+                    formatTime(audio.duration);
+            }
+
+            if (playerSeek) {
+                playerSeek.max = String(
+                    Number.isFinite(audio.duration)
+                        ? audio.duration
+                        : 0
                 );
-              });
+            }
+        });
 
-            item.classList.add("active");
-          }
-        );
-      }
+        audio.addEventListener("timeupdate", () => {
+            if (playerTimeCurrent) {
+                playerTimeCurrent.textContent =
+                    formatTime(audio.currentTime);
+            }
 
-      playlist.appendChild(item);
+            if (playerSeek && !playerSeek.matches(":active")) {
+                playerSeek.value = String(audio.currentTime);
+            }
+        });
+
+        audio.addEventListener("play", () => {
+            if (playerPlay) {
+                playerPlay.textContent = "Ⅱ";
+            }
+
+            if (vizBars) {
+                vizBars.classList.add("is-playing");
+            }
+
+            if (playerCover) {
+                playerCover.classList.add("is-playing");
+            }
+        });
+
+        audio.addEventListener("pause", () => {
+            if (playerPlay) {
+                playerPlay.textContent = "▶";
+            }
+
+            if (vizBars) {
+                vizBars.classList.remove("is-playing");
+            }
+
+            if (playerCover) {
+                playerCover.classList.remove("is-playing");
+            }
+        });
+
+        audio.addEventListener("ended", () => {
+            nextTrack();
+        });
+
+        audio.addEventListener("error", () => {
+            console.warn(
+                "Music file could not be loaded:",
+                audio.currentSrc
+            );
+        });
+    }
+
+    if (playerSeek && audio) {
+        playerSeek.addEventListener("input", () => {
+            const value = Number(playerSeek.value);
+
+            if (Number.isFinite(value)) {
+                audio.currentTime = value;
+            }
+        });
+    }
+
+    // ---------------------------------------------------------
+    // VOLUME
+    // ---------------------------------------------------------
+
+    if (playerVolume && audio) {
+        playerVolume.addEventListener("input", () => {
+            let value = Number(playerVolume.value);
+
+            if (!Number.isFinite(value)) {
+                value = 25;
+            }
+
+            value = Math.max(0, Math.min(100, value));
+
+            audio.volume = value / 100;
+            audio.muted = false;
+
+            localStorage.setItem(
+                "little-world-volume",
+                String(audio.volume)
+            );
+        });
+    }
+
+    // ---------------------------------------------------------
+    // START MUSIC SYSTEM
+    // ---------------------------------------------------------
+
+    loadMusic();
+
+    // =========================================================
+    // REMOVE ANY POSSIBLE EXTRA AUDIO ELEMENTS
+    // =========================================================
+    // The website should only have the main music player.
+    // We do NOT create sounds for buttons, cats or interactions.
+
+    $$("audio").forEach(element => {
+        if (element !== audio) {
+            element.pause();
+            element.remove();
+        }
     });
-  }
 
-  function initKeyboard() {
-    document.addEventListener(
-      "keydown",
-      event => {
-        if (
-          event.target.matches(
-            "input, textarea, button, a"
-          )
-        ) {
-          return;
-        }
+    // =========================================================
+    // SMALL SCROLL REVEAL
+    // =========================================================
 
-        if (event.key === "Escape") {
-          document.body.classList.remove(
-            "lights-off"
-          );
-        }
-      }
-    );
-  }
+    const revealElements = $$(".section, .cat-card, .game-panel");
 
-  function boot() {
-    initNavigation();
-    initBackground();
-    initReveal();
-    initRoom();
-    initGames();
-    initKeyboard();
+    if ("IntersectionObserver" in window) {
+        const observer = new IntersectionObserver(
+            entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("is-visible");
+                    }
+                });
+            },
+            {
+                threshold: 0.08
+            }
+        );
 
-    Promise.all([
-      getJSON(
-        "/api/cats",
-        FALLBACK_CATS
-      ),
-      getJSON(
-        "/api/music",
-        FALLBACK_MUSIC
-      )
-    ]).then(
-      ([catsData, musicData]) => {
-        cats =
-          Array.isArray(catsData) &&
-          catsData.length
-            ? catsData
-            : FALLBACK_CATS;
+        revealElements.forEach(element => {
+            observer.observe(element);
+        });
+    } else {
+        revealElements.forEach(element => {
+            element.classList.add("is-visible");
+        });
+    }
 
-        music =
-          Array.isArray(musicData) &&
-          musicData.length
-            ? musicData
-            : FALLBACK_MUSIC;
-
-        renderCats();
-        renderMusic();
-        initMusic();
-      }
-    );
-  }
-
-  if (
-    document.readyState ===
-    "loading"
-  ) {
-    document.addEventListener(
-      "DOMContentLoaded",
-      boot
-    );
-  } else {
-    boot();
-  }
-})();
+    console.log("♡ little world loaded");
+    console.log("Music tracks:", tracks.length);
+    console.log("Initial volume:", Math.round(savedVolume * 100) + "%");
+});
+```
