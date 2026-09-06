@@ -1,0 +1,14 @@
+{
+  "artist": "Jann",
+  "note": "Preview player uses a short generated demo tone for each track (no copyrighted audio is bundled). Tap 'Open in Spotify' to listen to the real recording legally, or drop your own licensed mp3 into public/music/ named after the track id to enable full local playback.",
+  "tracks": [
+    { "id": "gladiator", "title": "Gladiator", "duration": 212, "spotify": "https://open.spotify.com/search/Jann%20Gladiator", "hue": 340 },
+    { "id": "lookatme", "title": "LOOKATME", "duration": 182, "spotify": "https://open.spotify.com/search/Jann%20LOOKATME", "hue": 320 },
+    { "id": "charisma", "title": "Charisma", "duration": 177, "spotify": "https://open.spotify.com/search/Jann%20Charisma", "hue": 300 },
+    { "id": "need-a-break", "title": "Need a break", "duration": 214, "spotify": "https://open.spotify.com/search/Jann%20Need%20a%20break", "hue": 350 },
+    { "id": "smile", "title": "Smile", "duration": 184, "spotify": "https://open.spotify.com/search/Jann%20Smile", "hue": 330 },
+    { "id": "promise", "title": "Promise", "duration": 256, "spotify": "https://open.spotify.com/search/Jann%20Promise", "hue": 310 },
+    { "id": "kisskiss", "title": "Kisskiss", "duration": 196, "spotify": "https://open.spotify.com/search/Jann%20Kisskiss", "hue": 345 },
+    { "id": "emperors-new-clothes", "title": "Emperor's New Clothes", "duration": 230, "spotify": "https://open.spotify.com/search/Jann%20Emperor%27s%20New%20Clothes", "hue": 335 }
+  ]
+}

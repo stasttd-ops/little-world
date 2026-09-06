@@ -1,0 +1,44 @@
+{
+  "cats": [
+    {
+      "id": "mochi",
+      "name": "Mochi",
+      "color": "#f7c8dc",
+      "personality": "Sleepy dreamer who loves warm windowsills",
+      "favorite": "sunbeams",
+      "reactions": ["mrrp~", "*stretches*", "purrrr...", "zzz... huh?"]
+    },
+    {
+      "id": "luna",
+      "name": "Luna",
+      "color": "#d9c7f0",
+      "personality": "Curious explorer who investigates everything",
+      "favorite": "cardboard boxes",
+      "reactions": ["!!", "ooh what's that", "*sniffs curiously*", "mew?"]
+    },
+    {
+      "id": "miso",
+      "name": "Miso",
+      "color": "#f4d9a8",
+      "personality": "Chaotic little gremlin, zoomies at 3am",
+      "favorite": "chasing dust motes",
+      "reactions": ["mrow!!", "*zoomies*", "brrrp", "tag, you're it"]
+    },
+    {
+      "id": "neko",
+      "name": "Neko",
+      "color": "#b9e0d4",
+      "personality": "Gentle soul who gives the best headbutts",
+      "favorite": "chin scratches",
+      "reactions": ["prrrp", "*headbutt*", "mmrow~", "purr purr purr"]
+    },
+    {
+      "id": "mimi",
+      "name": "Mimi",
+      "color": "#f7b3b3",
+      "personality": "Little diva, very particular about snacks",
+      "favorite": "salmon flakes",
+      "reactions": ["mew.", "*judges you*", "...acceptable", "meow!"]
+    }
+  ]
+}
