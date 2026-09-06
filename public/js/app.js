@@ -1,14 +1,21 @@
 document.addEventListener("DOMContentLoaded", () => {
     "use strict";
 
+    // =========================================================
+    // HELPERS
+    // =========================================================
+
     const $ = (selector, parent = document) => parent.querySelector(selector);
     const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
 
-    const safeText = (value, fallback = "") =>
-        value == null ? fallback : String(value);
+    const safeText = (value, fallback = "") => {
+        return value == null ? fallback : String(value);
+    };
 
     const formatTime = (seconds) => {
-        if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
+        if (!Number.isFinite(seconds) || seconds < 0) {
+            return "0:00";
+        }
 
         const mins = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
@@ -16,12 +23,18 @@ document.addEventListener("DOMContentLoaded", () => {
         return `${mins}:${String(secs).padStart(2, "0")}`;
     };
 
-    const clamp = (value, min, max) =>
-        Math.min(max, Math.max(min, value));
+    const escapeHTML = (value) => {
+        return safeText(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    };
 
-    /* =========================================================
-       TOAST
-    ========================================================= */
+    // =========================================================
+    // TOAST
+    // =========================================================
 
     const toast = $("#toast");
     let toastTimer = null;
@@ -39,9 +52,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 2200);
     }
 
-    /* =========================================================
-       BACKGROUND
-    ========================================================= */
+    // =========================================================
+    // BACKGROUND
+    // =========================================================
 
     const stars = $("#stars");
 
@@ -86,9 +99,9 @@ document.addEventListener("DOMContentLoaded", () => {
         heroHearts.appendChild(fragment);
     }
 
-    /* =========================================================
-       FLOATING HEARTS
-    ========================================================= */
+    // =========================================================
+    // FLOATING HEART
+    // =========================================================
 
     function createFloatingHeart(x, y) {
         const heart = document.createElement("div");
@@ -96,11 +109,8 @@ document.addEventListener("DOMContentLoaded", () => {
         heart.className = "floating-heart";
         heart.textContent = "♡";
 
-        heart.style.position = "fixed";
         heart.style.left = `${x}px`;
         heart.style.top = `${y}px`;
-        heart.style.zIndex = "9999";
-        heart.style.pointerEvents = "none";
 
         document.body.appendChild(heart);
 
@@ -109,16 +119,86 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 1200);
     }
 
-    function createCardHeart(container) {
-        if (!container) return;
+    // =========================================================
+    // NAVIGATION
+    // =========================================================
 
-        let hearts = $(".cat-card__hearts", container);
+    const navBurger = $("#navBurger");
+    const navLinks = $("#navLinks");
 
-        if (!hearts) {
-            hearts = document.createElement("div");
-            hearts.className = "cat-card__hearts";
-            container.appendChild(hearts);
+    if (navBurger && navLinks) {
+        navBurger.addEventListener("click", () => {
+            const isOpen = navBurger.classList.toggle("is-open");
+
+            navLinks.classList.toggle("is-open", isOpen);
+            navBurger.classList.toggle("active", isOpen);
+            navLinks.classList.toggle("active", isOpen);
+
+            navBurger.setAttribute("aria-expanded", String(isOpen));
+        });
+
+        $$(".nav__link", navLinks).forEach((link) => {
+            link.addEventListener("click", () => {
+                navBurger.classList.remove("is-open", "active");
+                navLinks.classList.remove("is-open", "active");
+                navBurger.setAttribute("aria-expanded", "false");
+            });
+        });
+    }
+
+    // =========================================================
+    // CATS
+    // =========================================================
+
+    const catsGrid = $("#catsGrid");
+
+    const fallbackCats = [
+        {
+            id: 1,
+            name: "Milo",
+            emoji: "🐱",
+            description: "маленький сонний пухнастик",
+            personality: "сонний",
+            favorite: "дрімати"
+        },
+        {
+            id: 2,
+            name: "Luna",
+            emoji: "🐈",
+            description: "нічна принцеса",
+            personality: "спокійна",
+            favorite: "дивитися на зорі"
+        },
+        {
+            id: 3,
+            name: "Mochi",
+            emoji: "😺",
+            description: "найніжніший котик",
+            personality: "ніжний",
+            favorite: "обійми"
+        },
+        {
+            id: 4,
+            name: "Neko",
+            emoji: "😸",
+            description: "маленький бешкетник",
+            personality: "граційний",
+            favorite: "іграшки"
+        },
+        {
+            id: 5,
+            name: "Mimi",
+            emoji: "😽",
+            description: "маленька мрійниця",
+            personality: "мрійлива",
+            favorite: "сонечко"
         }
+    ];
+
+    let cats = [];
+
+    function createCatHeart(container) {
+        if (!container) return;
 
         const heart = document.createElement("span");
 
@@ -129,113 +209,76 @@ document.addEventListener("DOMContentLoaded", () => {
             `${-35 + Math.random() * 70}px`
         );
 
-        hearts.appendChild(heart);
+        container.appendChild(heart);
 
         setTimeout(() => {
             heart.remove();
-        }, 1200);
+        }, 1100);
     }
 
-    /* =========================================================
-       NAVIGATION
-    ========================================================= */
+    async function petCat(cat, button) {
+        if (!button) return;
 
-    const navBurger = $("#navBurger");
-    const navLinks = $("#navLinks");
+        const card = button.closest(".cat-card");
+        const hearts = $(".cat-card__hearts", card);
 
-    if (navBurger && navLinks) {
-        navBurger.addEventListener("click", () => {
-            const open = navLinks.classList.toggle("is-open");
+        button.disabled = true;
 
-            navBurger.classList.toggle("active", open);
-            navBurger.setAttribute("aria-expanded", String(open));
-        });
+        if (card) {
+            card.classList.remove("is-petted");
 
-        $$(".nav__link", navLinks).forEach((link) => {
-            link.addEventListener("click", () => {
-                navLinks.classList.remove("is-open");
-                navBurger.classList.remove("active");
-                navBurger.setAttribute("aria-expanded", "false");
+            requestAnimationFrame(() => {
+                card.classList.add("is-petted");
             });
-        });
-    }
-
-    /* =========================================================
-       CATS
-    ========================================================= */
-
-    const catsGrid = $("#catsGrid");
-
-    const fallbackCats = [
-        {
-            id: 1,
-            name: "Milo",
-            emoji: "🐱",
-            description: "маленький сонний пухнастик",
-            personality: "сонько",
-            favorite: "тепле ліжечко"
-        },
-        {
-            id: 2,
-            name: "Luna",
-            emoji: "🐈",
-            description: "нічна принцеса",
-            personality: "спокійна",
-            favorite: "місяць"
-        },
-        {
-            id: 3,
-            name: "Mochi",
-            emoji: "😺",
-            description: "найніжніший котик",
-            personality: "ніжна",
-            favorite: "обійми"
-        },
-        {
-            id: 4,
-            name: "Neko",
-            emoji: "😸",
-            description: "маленький бешкетник",
-            personality: "грайнливий",
-            favorite: "іграшки"
-        },
-        {
-            id: 5,
-            name: "Mimi",
-            emoji: "😽",
-            description: "маленька мрійниця",
-            personality: "мрійлива",
-            favorite: "зірочки"
-        }
-    ];
-
-    let cats = [];
-
-    function normalizeCat(cat, index) {
-        if (!cat || typeof cat !== "object") {
-            return fallbackCats[index] || fallbackCats[0];
         }
 
-        return {
-            id: cat.id ?? index + 1,
-            name: safeText(cat.name, fallbackCats[index]?.name || "Kitty"),
-            emoji: safeText(cat.emoji, "🐱"),
-            description: safeText(
-                cat.description ||
-                cat.personality ||
-                "маленький пухнастик"
-            ),
-            personality: safeText(
-                cat.personality ||
-                cat.description ||
-                "маленький пухнастик"
-            ),
-            favorite: safeText(
-                cat.favorite ||
-                cat.favourite ||
-                "обійми"
-            )
-        };
+        for (let i = 0; i < 3; i++) {
+            setTimeout(() => {
+                createCatHeart(hearts);
+            }, i * 100);
+        }
+
+        const rect = button.getBoundingClientRect();
+
+        createFloatingHeart(
+            rect.left + rect.width / 2,
+            rect.top
+        );
+
+        const reaction = $(".cat-card__reaction", card);
+
+        if (reaction) {
+            const reactions = [
+                "мррр... ♡",
+                "йому подобається!",
+                "ще раз ♡",
+                "мур-мур ✨",
+                "який хороший котик!"
+            ];
+
+            reaction.textContent =
+                reactions[Math.floor(Math.random() * reactions.length)];
+
+            reaction.classList.add("show");
+        }
+
+        setTimeout(() => {
+            button.disabled = false;
+        }, 500);
+
+        try {
+            await fetch("/api/stats/pet", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    cat: cat?.name || "unknown"
+                })
+            });
+        } catch (error) {
+            // Statistics are optional.
+        }
     }
 
     function renderCats() {
@@ -247,126 +290,81 @@ document.addEventListener("DOMContentLoaded", () => {
             const card = document.createElement("article");
 
             card.className = "cat-card";
-
             card.style.setProperty(
                 "--tilt",
                 `${index % 2 === 0 ? -1 : 1.2}deg`
             );
 
+            const name = escapeHTML(
+                cat.name || "Kitty"
+            );
+
+            const emoji = escapeHTML(
+                cat.emoji || "🐱"
+            );
+
+            const description = escapeHTML(
+                cat.description ||
+                cat.personality ||
+                "маленький пухнастик"
+            );
+
+            const personality = escapeHTML(
+                cat.personality || ""
+            );
+
+            const favorite = escapeHTML(
+                cat.favorite || ""
+            );
+
             card.innerHTML = `
                 <div class="cat-card__portrait">
-                    <span class="cat-card__emoji">
-                        ${safeText(cat.emoji, "🐱")}
-                    </span>
+                    <span class="cat-card__emoji">${emoji}</span>
                 </div>
 
                 <div class="cat-card__body">
-                    <h3 class="cat-card__name">
-                        ${safeText(cat.name, "Kitty")}
-                    </h3>
+                    <h3 class="cat-card__name">${name}</h3>
 
                     <p class="cat-card__personality">
-                        ${safeText(
-                            cat.personality,
-                            cat.description || "маленький пухнастик"
-                        )}
+                        ${description}
                     </p>
 
-                    <p class="cat-card__favorite">
-                        ♡ ${safeText(cat.favorite, "обійми")}
-                    </p>
+                    ${
+                        personality
+                            ? `<p class="cat-card__favorite">
+                                ${personality}
+                            </p>`
+                            : ""
+                    }
+
+                    ${
+                        favorite
+                            ? `<p class="cat-card__favorite">
+                                ♡ ${favorite}
+                            </p>`
+                            : ""
+                    }
 
                     <button
-                        class="cat-card__pet-btn"
+                        class="cat-card__pet-btn cat-card__button"
                         type="button"
-                        aria-label="Погладити ${safeText(cat.name, "котика")}"
                     >
                         погладити ♡
                     </button>
 
-                    <div class="cat-card__reaction" aria-live="polite">
-                        <span>мррр... ♡</span>
-                    </div>
-
-                    <div class="cat-card__hearts" aria-hidden="true"></div>
+                    <p class="cat-card__reaction">
+                        мррр... ♡
+                    </p>
                 </div>
+
+                <div class="cat-card__hearts" aria-hidden="true"></div>
             `;
 
             const button = $(".cat-card__pet-btn", card);
-            const emoji = $(".cat-card__emoji", card);
-            const reaction = $(".cat-card__reaction", card);
 
             if (button) {
-                button.addEventListener("click", async () => {
-                    if (button.disabled) return;
-
-                    button.disabled = true;
-
-                    card.classList.remove("is-petted");
-
-                    requestAnimationFrame(() => {
-                        card.classList.add("is-petted");
-                    });
-
-                    if (emoji) {
-                        emoji.style.transform = "scale(1.12)";
-                    }
-
-                    if (reaction) {
-                        const reactions = [
-                            "мррр... ♡",
-                            "ще! ♡",
-                            "це приємно...",
-                            "мяу ♡",
-                            "погладь ще раз!"
-                        ];
-
-                        reaction.textContent =
-                            reactions[
-                                Math.floor(
-                                    Math.random() * reactions.length
-                                )
-                            ];
-
-                        reaction.classList.add("show");
-                    }
-
-                    createCardHeart(card);
-
-                    const rect = button.getBoundingClientRect();
-
-                    createFloatingHeart(
-                        rect.left + rect.width / 2,
-                        rect.top
-                    );
-
-                    setTimeout(() => {
-                        if (emoji) {
-                            emoji.style.transform = "";
-                        }
-                    }, 350);
-
-                    setTimeout(() => {
-                        if (reaction) {
-                            reaction.classList.remove("show");
-                        }
-
-                        button.disabled = false;
-                    }, 650);
-
-                    try {
-                        await fetch("/api/stats/pet", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({
-                                cat: cat.name
-                            })
-                        });
-                    } catch (_) {
-                        // Statistics are optional.
-                    }
+                button.addEventListener("click", () => {
+                    petCat(cat, button);
                 });
             }
 
@@ -386,51 +384,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const data = await response.json();
 
-            let received = [];
-
             if (Array.isArray(data)) {
-                received = data;
+                cats = data;
             } else if (Array.isArray(data.cats)) {
-                received = data.cats;
+                cats = data.cats;
             }
 
-            if (received.length) {
-                cats = received.map(normalizeCat);
-            } else {
+            if (!cats.length) {
                 cats = fallbackCats;
             }
-        } catch (_) {
+        } catch (error) {
             cats = fallbackCats;
         }
-
-        /*
-         * Завжди показуємо мінімум 5 котиків.
-         */
-        if (cats.length < 5) {
-            const existingNames = new Set(
-                cats.map((cat) => cat.name)
-            );
-
-            fallbackCats.forEach((cat) => {
-                if (
-                    cats.length < 5 &&
-                    !existingNames.has(cat.name)
-                ) {
-                    cats.push(cat);
-                }
-            });
-        }
-
-        cats = cats.slice(0, 5);
 
         renderCats();
     }
 
     loadCats();
 
-    /* =========================================================
-       ROOM
-    ========================================================= */
+    // =========================================================
+    // ROOM
+    // =========================================================
 
     const roomCaption = $("#roomCaption");
     const roomCat = $("#roomCat");
@@ -438,52 +412,54 @@ document.addEventListener("DOMContentLoaded", () => {
     const roomMessages = {
         "obj-window": [
             "за вікном тихий вечір ♡",
-            "котик дивиться на зорі 🌙",
-            "там десь теж є маленькі котики",
-            "який гарний краєвид..."
+            "котик дивиться на зорі",
+            "там десь теж є маленькі котики"
         ],
 
         "obj-lamp": [
             "лампа вмикає затишок ✨",
             "стало тепліше",
-            "ідеальний вечір для відпочинку",
-            "котик любить це світло ♡"
+            "ідеальний вечір для відпочинку"
         ],
 
         "obj-plant": [
             "рослинка теж дивиться на тебе 🌱",
-            "вона сьогодні гарно росте",
-            "котик нюхає листочки",
-            "не забудь про рослинку ♡"
+            "полий її уявно ♡",
+            "вона сьогодні гарно росте"
         ],
 
         "obj-bed": [
             "ліжко каже: час відпочити",
             "тут дуже зручно",
-            "котик вже майже заснув...",
-            "ідеальне місце для дрімоти 💤"
+            "котик вже майже заснув..."
         ],
 
         "obj-toy": [
             "іграшка чекає на котика",
             "хтось явно хоче погратися",
-            "м'ячик покотився!",
-            "котик вже біжить до неї 🐾"
+            "іграшка покотилася!"
         ],
 
         "obj-bowl": [
             "мисочка порожня...",
             "котик явно натякає на вечерю",
-            "ще одну смакоту? ♡",
-            "мяу. Їсти."
+            "ще одну смакоту? ♡"
         ]
+    };
+
+    const roomPositions = {
+        "obj-window": [250, 300],
+        "obj-lamp": [400, 300],
+        "obj-plant": [650, 300],
+        "obj-bed": [520, 315],
+        "obj-toy": [390, 350],
+        "obj-bowl": [560, 350]
     };
 
     function showRoomMessage(message) {
         if (!roomCaption) return;
 
         roomCaption.textContent = message;
-
         roomCaption.classList.remove("show");
 
         requestAnimationFrame(() => {
@@ -491,57 +467,15 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* ---------------------------------------------------------
-       ROOM CAT MOVEMENT
-    --------------------------------------------------------- */
-
-    const roomPositions = [
-        { x: 330, y: 330 },
-        { x: 150, y: 285 },
-        { x: 235, y: 340 },
-        { x: 420, y: 340 },
-        { x: 555, y: 300 },
-        { x: 640, y: 335 },
-        { x: 475, y: 365 },
-        { x: 360, y: 370 }
-    ];
-
-    let roomPositionIndex = 0;
-    let roomMoveTimer = null;
-    let roomPausedUntil = 0;
-
-    function moveRoomCat(index = null) {
+    function moveRoomCat(id) {
         if (!roomCat) return;
 
-        if (index === null) {
-            roomPositionIndex =
-                (roomPositionIndex + 1) %
-                roomPositions.length;
-        } else {
-            roomPositionIndex =
-                clamp(
-                    index,
-                    0,
-                    roomPositions.length - 1
-                );
-        }
+        const position = roomPositions[id];
 
-        const position =
-            roomPositions[roomPositionIndex];
+        if (!position) return;
 
-        roomCat.setAttribute(
-            "transform",
-            `translate(${position.x},${position.y})`
-        );
-
-        const inner = $(".room__cat-inner", roomCat);
-
-        if (inner) {
-            inner.style.transform =
-                Math.random() > 0.5
-                    ? "scaleX(1)"
-                    : "scaleX(-1)";
-        }
+        roomCat.style.transform =
+            `translate(${position[0]}px, ${position[1]}px)`;
 
         roomCat.classList.remove("is-playing");
 
@@ -550,32 +484,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
             setTimeout(() => {
                 roomCat.classList.remove("is-playing");
-            }, 500);
+            }, 600);
         });
     }
 
-    function startRoomMovement() {
-        if (!roomCat) return;
+    Object.keys(roomMessages).forEach((id) => {
+        const object = $(`#${id}`);
 
-        clearInterval(roomMoveTimer);
+        if (!object) return;
 
-        roomMoveTimer = setInterval(() => {
-            if (Date.now() < roomPausedUntil) return;
+        object.addEventListener("click", () => {
+            const messages = roomMessages[id];
+            const message =
+                messages[Math.floor(Math.random() * messages.length)];
 
-            moveRoomCat();
-        }, 4200);
-    }
+            showRoomMessage(message);
+            moveRoomCat(id);
+        });
 
-    function pauseRoomMovement(ms = 5000) {
-        roomPausedUntil = Date.now() + ms;
-    }
+        object.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                object.click();
+            }
+        });
+    });
 
     if (roomCat) {
-        roomCat.addEventListener("click", (event) => {
-            event.stopPropagation();
-
-            pauseRoomMovement(7000);
-
+        roomCat.addEventListener("click", () => {
             const rect = roomCat.getBoundingClientRect();
 
             createFloatingHeart(
@@ -589,267 +525,134 @@ document.addEventListener("DOMContentLoaded", () => {
 
             requestAnimationFrame(() => {
                 roomCat.classList.add("is-playing");
+
+                setTimeout(() => {
+                    roomCat.classList.remove("is-playing");
+                }, 600);
             });
         });
-
-        /*
-         * Котик стартує з позиції з HTML,
-         * після чого починає сам ходити.
-         */
-        setTimeout(() => {
-            moveRoomCat(0);
-            startRoomMovement();
-        }, 500);
     }
 
-    /* ---------------------------------------------------------
-       ROOM OBJECTS
-    --------------------------------------------------------- */
+    // =========================================================
+    // WINDOW
+    // =========================================================
 
-    Object.keys(roomMessages).forEach((id) => {
-        const object = $(`#${id}`);
-
-        if (!object) return;
-
-        const reactToObject = () => {
-            pauseRoomMovement(5500);
-
-            const messages = roomMessages[id];
-
-            const message =
-                messages[
-                    Math.floor(
-                        Math.random() * messages.length
-                    )
-                ];
-
-            showRoomMessage(message);
-
-            /*
-             * Котик реагує на предмет і трохи рухається.
-             */
-            if (roomCat) {
-                roomCat.classList.remove("is-playing");
-
-                requestAnimationFrame(() => {
-                    roomCat.classList.add("is-playing");
-                });
-            }
-        };
-
-        object.addEventListener("click", reactToObject);
-
-        object.addEventListener("keydown", (event) => {
-            if (
-                event.key === "Enter" ||
-                event.key === " "
-            ) {
-                event.preventDefault();
-                reactToObject();
-            }
-        });
-    });
-
-    /* =========================================================
-       WINDOW
-    ========================================================= */
-
+    const objWindow = $("#obj-window");
     const windowSky = $("#windowSky");
     const windowScenery = $("#windowScenery");
 
     let nightMode = true;
 
-    function drawWindowScenery() {
-        if (!windowScenery) return;
+    function updateWindow() {
+        if (windowSky) {
+            windowSky.classList.toggle("day", !nightMode);
+        }
 
-        windowScenery.innerHTML = "";
+        if (windowScenery) {
+            windowScenery.classList.toggle("day", !nightMode);
 
-        if (nightMode) {
-            for (let i = 0; i < 12; i++) {
-                const star = document.createElementNS(
-                    "http://www.w3.org/2000/svg",
-                    "circle"
-                );
-
-                star.setAttribute(
-                    "cx",
-                    String(82 + Math.random() * 140)
-                );
-
-                star.setAttribute(
-                    "cy",
-                    String(82 + Math.random() * 105)
-                );
-
-                star.setAttribute("r", "2");
-                star.setAttribute("fill", "#fff");
-                star.setAttribute(
-                    "opacity",
-                    String(0.5 + Math.random() * 0.5)
-                );
-
-                windowScenery.appendChild(star);
-            }
-
-            const moon = document.createElementNS(
-                "http://www.w3.org/2000/svg",
-                "circle"
-            );
-
-            moon.setAttribute("cx", "105");
-            moon.setAttribute("cy", "105");
-            moon.setAttribute("r", "18");
-            moon.setAttribute("fill", "#fff5c7");
-
-            windowScenery.appendChild(moon);
-        } else {
-            const sun = document.createElementNS(
-                "http://www.w3.org/2000/svg",
-                "circle"
-            );
-
-            sun.setAttribute("cx", "195");
-            sun.setAttribute("cy", "100");
-            sun.setAttribute("r", "22");
-            sun.setAttribute("fill", "#ffe6a7");
-
-            windowScenery.appendChild(sun);
-
-            const cloud = document.createElementNS(
-                "http://www.w3.org/2000/svg",
-                "path"
-            );
-
-            cloud.setAttribute(
-                "d",
-                "M90 170 C100 150 120 150 132 165 C142 145 175 148 180 170 Z"
-            );
-
-            cloud.setAttribute("fill", "#fff");
-            cloud.setAttribute("opacity", "0.8");
-
-            windowScenery.appendChild(cloud);
+            windowScenery.innerHTML = nightMode
+                ? `
+                    <circle cx="190" cy="95" r="18" fill="#fff3c4"/>
+                    <circle cx="110" cy="110" r="2" fill="#ffffff"/>
+                    <circle cx="145" cy="90" r="2" fill="#ffffff"/>
+                    <circle cx="175" cy="135" r="2" fill="#ffffff"/>
+                    <circle cx="100" cy="155" r="2" fill="#ffffff"/>
+                    <circle cx="205" cy="155" r="2" fill="#ffffff"/>
+                `
+                : `
+                    <circle cx="190" cy="100" r="22" fill="#fff3a8"/>
+                    <path
+                        d="M70 185
+                           C100 165 120 175 145 165
+                           C175 150 195 175 230 150
+                           L230 200
+                           L70 200 Z"
+                        fill="#b6dcc2"
+                    />
+                    <circle cx="105" cy="125" r="8" fill="#ffffff" opacity="0.7"/>
+                    <circle cx="125" cy="115" r="11" fill="#ffffff" opacity="0.7"/>
+                `;
         }
     }
 
-    if (windowSky) {
-        windowSky.style.cursor = "pointer";
-
-        windowSky.addEventListener("click", (event) => {
-            event.stopPropagation();
-
-            nightMode = !nightMode;
-
-            if (nightMode) {
-                windowSky.setAttribute(
-                    "fill",
-                    "#cfe7ff"
-                );
+    if (objWindow) {
+        objWindow.addEventListener("click", (event) => {
+            if (
+                event.target === windowSky ||
+                event.target === windowScenery ||
+                objWindow.contains(event.target)
+            ) {
+                nightMode = !nightMode;
+                updateWindow();
 
                 showRoomMessage(
-                    "ніч повернулася 🌙"
-                );
-            } else {
-                windowSky.setAttribute(
-                    "fill",
-                    "#ffe7b8"
-                );
-
-                showRoomMessage(
-                    "сонечко виглянуло ☀️"
+                    nightMode
+                        ? "ніч повернулася 🌙"
+                        : "сонечко виглянуло ☀️"
                 );
             }
-
-            drawWindowScenery();
         });
     }
 
-    drawWindowScenery();
+    updateWindow();
 
-    /* =========================================================
-       LAMP
-    ========================================================= */
+    // =========================================================
+    // LAMP
+    // =========================================================
 
+    const objLamp = $("#obj-lamp");
     const lampShade = $("#lampShade");
     const lampBulb = $("#lampBulb");
     const lampGlow = $("#lampGlow");
 
     let lampOn = true;
 
-    function toggleLamp() {
-        lampOn = !lampOn;
-
+    function updateLamp() {
         if (lampShade) {
-            lampShade.setAttribute(
-                "opacity",
-                lampOn ? "1" : "0.65"
-            );
+            lampShade.style.opacity = lampOn ? "1" : "0.45";
         }
 
         if (lampBulb) {
-            lampBulb.setAttribute(
-                "fill",
-                lampOn ? "#fff3c4" : "#d5cbd0"
-            );
+            lampBulb.style.opacity = lampOn ? "1" : "0.35";
         }
 
         if (lampGlow) {
-            lampGlow.setAttribute(
-                "opacity",
-                lampOn ? "0.28" : "0"
-            );
+            lampGlow.style.opacity = lampOn ? "0.35" : "0";
         }
-
-        showRoomMessage(
-            lampOn
-                ? "лампа знову світить ✨"
-                : "тепер темніше..."
-        );
     }
 
-    [lampShade, lampBulb, lampGlow]
-        .filter(Boolean)
-        .forEach((element) => {
-            element.style.cursor = "pointer";
+    if (objLamp) {
+        objLamp.addEventListener("click", () => {
+            lampOn = !lampOn;
 
-            element.addEventListener(
-                "click",
-                (event) => {
-                    event.stopPropagation();
-                    toggleLamp();
-                }
+            updateLamp();
+
+            showRoomMessage(
+                lampOn
+                    ? "лампа знову світить ✨"
+                    : "тепер темніше..."
             );
         });
-
-    if (lampGlow) {
-        lampGlow.setAttribute("opacity", "0.28");
-        lampGlow.style.pointerEvents = "none";
     }
 
-    /* =========================================================
-       GAMES TABS
-    ========================================================= */
+    updateLamp();
+
+    // =========================================================
+    // GAMES — TABS
+    // =========================================================
 
     const gameTabs = $$(".games__tab");
-    const gamePanels = $$(".game-panel");
 
     gameTabs.forEach((tab) => {
         tab.addEventListener("click", () => {
             const game = tab.dataset.game;
 
             gameTabs.forEach((item) => {
-                const active =
-                    item === tab;
+                const active = item === tab;
 
-                item.classList.toggle(
-                    "is-active",
-                    active
-                );
-
-                item.classList.toggle(
-                    "active",
-                    active
-                );
+                item.classList.toggle("is-active", active);
+                item.classList.toggle("active", active);
 
                 item.setAttribute(
                     "aria-selected",
@@ -857,26 +660,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
             });
 
-            gamePanels.forEach((panel) => {
+            $$(".game-panel").forEach((panel) => {
                 const active =
                     panel.id === `game-${game}`;
 
-                panel.classList.toggle(
-                    "is-active",
-                    active
-                );
-
-                panel.classList.toggle(
-                    "active",
-                    active
-                );
+                panel.classList.toggle("is-active", active);
+                panel.classList.toggle("active", active);
             });
         });
     });
 
-    /* =========================================================
-       CATCH THE CAT
-    ========================================================= */
+    // =========================================================
+    // CATCH THE CAT
+    // =========================================================
 
     const catchStart = $("#catchStart");
     const catchStage = $("#catchStage");
@@ -887,19 +683,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const catchHint = $("#catchHint");
 
     let catchScoreValue = 0;
-    let catchBestValue = Number(
-        localStorage.getItem(
-            "little-world-catch-best"
-        ) || 0
-    );
-
     let catchTimeLeft = 30;
     let catchTimer = null;
     let catchRunning = false;
 
+    let catchBestValue = Number(
+        localStorage.getItem("little-world-catch-best") || 0
+    );
+
+    if (!Number.isFinite(catchBestValue)) {
+        catchBestValue = 0;
+    }
+
     if (catchBest) {
-        catchBest.textContent =
-            String(catchBestValue);
+        catchBest.textContent = String(catchBestValue);
     }
 
     function moveCatchCat() {
@@ -934,12 +731,13 @@ document.addEventListener("DOMContentLoaded", () => {
     function finishCatchGame() {
         catchRunning = false;
 
-        clearInterval(catchTimer);
-        catchTimer = null;
+        if (catchTimer) {
+            clearInterval(catchTimer);
+            catchTimer = null;
+        }
 
         if (catchScoreValue > catchBestValue) {
-            catchBestValue =
-                catchScoreValue;
+            catchBestValue = catchScoreValue;
 
             localStorage.setItem(
                 "little-world-catch-best",
@@ -981,7 +779,10 @@ document.addEventListener("DOMContentLoaded", () => {
     function startCatchGame() {
         if (!catchStage || !catchCat) return;
 
-        clearInterval(catchTimer);
+        if (catchTimer) {
+            clearInterval(catchTimer);
+            catchTimer = null;
+        }
 
         catchRunning = true;
         catchScoreValue = 0;
@@ -1001,9 +802,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (catchStart) {
-            catchStart.disabled = true;
-            catchStart.textContent =
-                "гра триває...";
+            catchStart.disabled = false;
+            catchStart.textContent = "граєш...";
         }
 
         catchCat.style.display = "block";
@@ -1060,9 +860,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    /* =========================================================
-       MEMORY GAME
-    ========================================================= */
+    // =========================================================
+    // MEMORY
+    // =========================================================
 
     const memoryGrid = $("#memoryGrid");
     const memoryStart = $("#memoryStart");
@@ -1090,23 +890,12 @@ document.addEventListener("DOMContentLoaded", () => {
     function shuffle(array) {
         const result = [...array];
 
-        for (
-            let i = result.length - 1;
-            i > 0;
-            i--
-        ) {
+        for (let i = result.length - 1; i > 0; i--) {
             const j =
-                Math.floor(
-                    Math.random() * (i + 1)
-                );
+                Math.floor(Math.random() * (i + 1));
 
-            [
-                result[i],
-                result[j]
-            ] = [
-                result[j],
-                result[i]
-            ];
+            [result[i], result[j]] =
+                [result[j], result[i]];
         }
 
         return result;
@@ -1123,35 +912,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
             button.type = "button";
             button.className = "memory-card";
-            button.dataset.index =
-                String(index);
-
-            if (card.flipped || card.matched) {
-                button.classList.add("is-flipped");
-                button.classList.add("flipped");
-            }
-
-            if (card.matched) {
-                button.classList.add("is-matched");
-                button.classList.add("matched");
-            }
+            button.dataset.index = String(index);
 
             button.innerHTML = `
                 <span class="memory-card__inner">
-                    <span class="memory-card__face memory-card__face--back">
+                    <span class="memory-card__face memory-card__face--front">
                         ?
                     </span>
 
-                    <span class="memory-card__face memory-card__face--front">
-                        ${safeText(card.symbol, "🐱")}
+                    <span class="memory-card__face memory-card__face--back">
+                        ${escapeHTML(card.symbol)}
                     </span>
                 </span>
             `;
 
-            button.addEventListener(
-                "click",
-                () => handleMemoryClick(index)
-            );
+            if (card.flipped || card.matched) {
+                button.classList.add(
+                    "is-flipped",
+                    "flipped"
+                );
+            }
+
+            if (card.matched) {
+                button.classList.add(
+                    "is-matched",
+                    "matched"
+                );
+            }
+
+            button.addEventListener("click", () => {
+                handleMemoryClick(index);
+            });
 
             memoryGrid.appendChild(button);
         });
@@ -1163,14 +954,13 @@ document.addEventListener("DOMContentLoaded", () => {
             ...memorySymbols
         ];
 
-        memoryCards =
-            shuffle(doubled).map(
-                (symbol) => ({
-                    symbol,
-                    flipped: false,
-                    matched: false
-                })
-            );
+        memoryCards = shuffle(doubled).map(
+            (symbol) => ({
+                symbol,
+                flipped: false,
+                matched: false
+            })
+        );
 
         memoryFirst = null;
         memorySecond = null;
@@ -1204,14 +994,12 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const card =
-            memoryCards[index];
+        const card = memoryCards[index];
 
         card.flipped = true;
 
         if (memoryFirst === null) {
             memoryFirst = index;
-
             renderMemory();
             return;
         }
@@ -1232,10 +1020,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const second =
             memoryCards[memorySecond];
 
-        if (
-            first.symbol ===
-            second.symbol
-        ) {
+        if (first.symbol === second.symbol) {
             first.matched = true;
             second.matched = true;
 
@@ -1260,9 +1045,16 @@ document.addEventListener("DOMContentLoaded", () => {
                         "ще раз";
                 }
 
-                showToast(
-                    "усі котики знайдені! ♡"
-                );
+                fetch("/api/stats/game", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        game: "memory",
+                        score: memoryFoundValue
+                    })
+                }).catch(() => {});
             }
 
             return;
@@ -1293,9 +1085,9 @@ document.addEventListener("DOMContentLoaded", () => {
         startMemoryGame();
     }
 
-    /* =========================================================
-       PET THE CAT GAME
-    ========================================================= */
+    // =========================================================
+    // PET THE CAT GAME
+    // =========================================================
 
     const petFill = $("#petFill");
     const petReset = $("#petReset");
@@ -1323,7 +1115,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     "йому подобається!";
             } else {
                 petHint.textContent =
-                    "клікай на котика ♡";
+                    "погладь котика ♡";
             }
         }
 
@@ -1334,9 +1126,6 @@ document.addEventListener("DOMContentLoaded", () => {
             } else if (petValue >= 60) {
                 petBigCatFace.textContent =
                     "😸";
-            } else if (petValue >= 30) {
-                petBigCatFace.textContent =
-                    "😺";
             } else {
                 petBigCatFace.textContent =
                     "🐱";
@@ -1346,11 +1135,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (petBigCat) {
         petBigCat.addEventListener("click", () => {
-            petValue =
-                Math.min(
-                    100,
-                    petValue + 10
-                );
+            petValue = Math.min(
+                100,
+                petValue + 10
+            );
 
             updatePetGame();
 
@@ -1370,65 +1158,56 @@ document.addEventListener("DOMContentLoaded", () => {
                 petBigCat.classList.add(
                     "is-petted"
                 );
+
+                setTimeout(() => {
+                    petBigCat.classList.remove(
+                        "is-petted"
+                    );
+                }, 500);
             });
         });
     }
 
     if (petReset) {
-        petReset.addEventListener(
-            "click",
-            () => {
-                petValue = 0;
-                updatePetGame();
-            }
-        );
+        petReset.addEventListener("click", () => {
+            petValue = 0;
+            updatePetGame();
+        });
     }
 
     updatePetGame();
 
-    /* =========================================================
-       MUSIC PLAYER
-       ONLY REAL MUSIC AUDIO.
-       NO UI SOUNDS.
-    ========================================================= */
+    // =========================================================
+    // MUSIC PLAYER
+    // =========================================================
+
+    // IMPORTANT:
+    // #player is only a visual container.
+    // Real audio is created here.
 
     const musicAudio = new Audio();
 
     musicAudio.preload = "metadata";
     musicAudio.volume = 0.25;
 
-    const playerCover =
-        $("#playerCover");
+    const playerCover = $("#playerCover");
+    const playerVisualizer = $("#playerVisualizer");
+    const vizBars = $("#vizBars");
 
-    const playerVisualizer =
-        $("#playerVisualizer");
-
-    const vizBars =
-        $("#vizBars");
-
-    const playerTrack =
-        $("#playerTrack");
-
-    const playerArtist =
-        $("#playerArtist");
+    const playerTrack = $("#playerTrack");
+    const playerArtist = $("#playerArtist");
 
     const playerTimeCurrent =
         $("#playerTimeCurrent");
 
-    const playerSeek =
-        $("#playerSeek");
+    const playerSeek = $("#playerSeek");
 
     const playerTimeTotal =
         $("#playerTimeTotal");
 
-    const playerPrev =
-        $("#playerPrev");
-
-    const playerPlay =
-        $("#playerPlay");
-
-    const playerNext =
-        $("#playerNext");
+    const playerPrev = $("#playerPrev");
+    const playerPlay = $("#playerPlay");
+    const playerNext = $("#playerNext");
 
     const playerSpotify =
         $("#playerSpotify");
@@ -1436,82 +1215,101 @@ document.addEventListener("DOMContentLoaded", () => {
     const playerVolume =
         $("#playerVolume");
 
-    const playlist =
-        $("#playlist");
+    const playlist = $("#playlist");
 
     let tracks = [];
     let currentTrackIndex = 0;
 
-    /*
-     * Гучність завжди стартує з 25%.
-     * Не беремо старе значення localStorage.
-     */
-    const INITIAL_VOLUME = 0.25;
+    // ---------------------------------------------------------
+    // VOLUME
+    // ---------------------------------------------------------
+
+    // HTML slider remains 0-100.
+    // Default volume is exactly 25%.
+
+    let savedVolumePercent = Number(
+        localStorage.getItem(
+            "little-world-volume-percent"
+        )
+    );
+
+    if (
+        !Number.isFinite(savedVolumePercent) ||
+        savedVolumePercent < 0 ||
+        savedVolumePercent > 100
+    ) {
+        savedVolumePercent = 25;
+    }
 
     musicAudio.volume =
-        INITIAL_VOLUME;
+        savedVolumePercent / 100;
 
     if (playerVolume) {
         playerVolume.min = "0";
         playerVolume.max = "100";
         playerVolume.step = "1";
-        playerVolume.value = "25";
+        playerVolume.value =
+            String(savedVolumePercent);
     }
+
+    // ---------------------------------------------------------
+    // FALLBACK MUSIC
+    // ---------------------------------------------------------
 
     const fallbackTracks = [
         {
             title: "Charisma",
             artist: "Jann",
-            file: "/music/Jann%20-%20Charisma.mp3",
+            file: "/music/Jann - Charisma.mp3",
             cover: "",
             spotify: ""
         },
         {
             title: "Emperor's New Clothes",
             artist: "Jann",
-            file: "/music/Jann%20-%20Emperor%27s%20New%20Clothes.mp3",
+            file: "/music/Jann - Emperor's New Clothes.mp3",
             cover: "",
             spotify: ""
         },
         {
             title: "Gladiator",
             artist: "Jann",
-            file: "/music/Jann%20-%20Gladiator.mp3",
+            file: "/music/Jann - Gladiator.mp3",
             cover: "",
             spotify: ""
         },
         {
             title: "Lookatme",
             artist: "Jann",
-            file: "/music/Jann%20-%20Lookatme.mp3",
+            file: "/music/Jann - Lookatme.mp3",
             cover: "",
             spotify: ""
         },
         {
             title: "Need A Break",
             artist: "Jann",
-            file: "/music/Jann%20-%20Need%20A%20Break.mp3",
+            file: "/music/Jann - Need A Break.mp3",
             cover: "",
             spotify: ""
         },
         {
             title: "Promise",
             artist: "Jann",
-            file: "/music/Jann%20-%20Promise.mp3",
+            file: "/music/Jann - Promise.mp3",
             cover: "",
             spotify: ""
         },
         {
             title: "Smile",
             artist: "Jann",
-            file: "/music/Jann%20-%20Smile.mp3",
+            file: "/music/Jann - Smile.mp3",
             cover: "",
             spotify: ""
         },
         {
             title: "Kisskiss",
             artist: "Jann",
-            file: "/music/Jann%20Kisskiss.mp3",
+            file: "/music/Jann Kisskiss.mp3",
             cover: "",
             spotify: ""
         }
@@ -1520,23 +1318,34 @@ document.addEventListener("DOMContentLoaded", () => {
     function normalizeFile(file) {
         if (!file) return "";
 
-        const value =
-            String(file).trim();
+        const value = String(file).trim();
 
         if (!value) return "";
 
         if (
             value.startsWith("http://") ||
-            value.startsWith("https://") ||
-            value.startsWith("/")
+            value.startsWith("https://")
         ) {
             return value;
         }
 
-        return `/${value.replace(
-            /^\.?\//,
-            ""
-        )}`;
+        let clean = value
+            .replace(/^\.?\//, "")
+            .replace(/^\/+/, "");
+
+        const parts = clean
+            .split("/")
+            .map((part) => {
+                try {
+                    return encodeURIComponent(
+                        decodeURIComponent(part)
+                    );
+                } catch {
+                    return encodeURIComponent(part);
+                }
+            });
+
+        return `/${parts.join("/")}`;
     }
 
     function normalizeTrack(track) {
@@ -1547,15 +1356,16 @@ document.addEventListener("DOMContentLoaded", () => {
             return null;
         }
 
-        const file =
-            normalizeFile(
-                track.file ||
-                track.url ||
-                track.src ||
-                track.path
-            );
+        const file = normalizeFile(
+            track.file ||
+            track.url ||
+            track.src ||
+            track.path
+        );
 
-        if (!file) return null;
+        if (!file) {
+            return null;
+        }
 
         return {
             title: safeText(
@@ -1591,36 +1401,86 @@ document.addEventListener("DOMContentLoaded", () => {
                 file,
                 window.location.origin
             ).href;
-        } catch (_) {
+        } catch {
             return file;
         }
     }
 
+    // ---------------------------------------------------------
+    // VISUALIZER
+    // ---------------------------------------------------------
+
     function createVisualizerBars() {
         if (!vizBars) return;
 
-        vizBars.innerHTML = "";
+        if (vizBars.children.length) {
+            return;
+        }
 
         const fragment =
             document.createDocumentFragment();
 
         for (let i = 0; i < 28; i++) {
             const bar =
-                document.createElement("span");
+                document.createElement("rect");
 
-            bar.className = "viz-bar";
+            const angle =
+                (360 / 28) * i;
 
-            bar.style.height =
-                `${20 + Math.random() * 60}%`;
+            const radians =
+                angle * Math.PI / 180;
 
-            bar.style.animationDelay =
-                `${Math.random() * 0.8}s`;
+            const centerX = 60;
+            const centerY = 60;
+
+            const radius = 38;
+
+            const x =
+                centerX +
+                Math.cos(radians) * radius;
+
+            const y =
+                centerY +
+                Math.sin(radians) * radius;
+
+            bar.setAttribute(
+                "x",
+                String(x - 1)
+            );
+
+            bar.setAttribute(
+                "y",
+                String(y - 5)
+            );
+
+            bar.setAttribute(
+                "width",
+                "2"
+            );
+
+            bar.setAttribute(
+                "height",
+                String(
+                    8 + Math.random() * 12
+                )
+            );
+
+            bar.setAttribute(
+                "rx",
+                "1"
+            );
+
+            bar.classList.add("viz-bar");
 
             fragment.appendChild(bar);
         }
 
         vizBars.appendChild(fragment);
     }
+
+    // ---------------------------------------------------------
+    // PLAYLIST
+    // ---------------------------------------------------------
 
     function renderPlaylist() {
         if (!playlist) return;
@@ -1633,69 +1493,64 @@ document.addEventListener("DOMContentLoaded", () => {
 
             item.className = "music-item";
 
-            if (
-                index ===
-                currentTrackIndex
-            ) {
-                item.classList.add(
-                    "is-active"
-                );
+            if (index === currentTrackIndex) {
+                item.classList.add("is-active");
             }
-
-            item.innerHTML = `
-                <button
-                    type="button"
-                    class="music-item__button"
-                    aria-label="Відтворити ${safeText(track.title)}"
-                >
-                    <span class="music-item__number">
-                        ${String(index + 1).padStart(2, "0")}
-                    </span>
-
-                    <span class="music-item__info">
-                        <span class="music-item__title">
-                            ${safeText(track.title)}
-                        </span>
-
-                        <span class="music-item__artist">
-                            ${safeText(track.artist)}
-                        </span>
-                    </span>
-
-                    <span class="music-item__icon">
-                        ${index === currentTrackIndex && !musicAudio.paused
-                            ? "Ⅱ"
-                            : "▶"}
-                    </span>
-                </button>
-            `;
 
             const button =
-                $(".music-item__button", item);
+                document.createElement("button");
 
-            if (button) {
-                button.addEventListener(
-                    "click",
-                    () => {
-                        if (
-                            index ===
-                                currentTrackIndex &&
-                            !musicAudio.paused
-                        ) {
-                            pauseMusic();
-                        } else {
-                            loadTrack(
-                                index,
-                                true
-                            );
-                        }
+            button.type = "button";
+            button.className =
+                "music-item__button";
+
+            button.innerHTML = `
+                <span class="music-item__number">
+                    ${String(index + 1).padStart(2, "0")}
+                </span>
+
+                <span class="music-item__info">
+                    <span class="music-item__title">
+                        ${escapeHTML(track.title)}
+                    </span>
+
+                    <span class="music-item__artist">
+                        ${escapeHTML(track.artist)}
+                    </span>
+                </span>
+
+                <span class="music-item__icon">
+                    ${
+                        index === currentTrackIndex &&
+                        !musicAudio.paused
+                            ? "Ⅱ"
+                            : "▶"
                     }
-                );
-            }
+                </span>
+            `;
 
+            button.addEventListener(
+                "click",
+                () => {
+                    if (
+                        index === currentTrackIndex &&
+                        !musicAudio.paused
+                    ) {
+                        pauseMusic();
+                    } else {
+                        loadTrack(index, true);
+                    }
+                }
+            );
+
+            item.appendChild(button);
             playlist.appendChild(item);
         });
     }
+
+    // ---------------------------------------------------------
+    // PLAYER UI
+    // ---------------------------------------------------------
 
     function updatePlayerUI() {
         const track =
@@ -1730,6 +1585,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 playerSpotify.href =
                     track.spotify;
+
+                playerSpotify.target =
+                    "_blank";
+
+                playerSpotify.rel =
+                    "noopener noreferrer";
             } else {
                 playerSpotify.style.display =
                     "none";
@@ -1758,29 +1619,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function updatePlayButton() {
-        if (!playerPlay) return;
+        if (playerPlay) {
+            playerPlay.textContent =
+                musicAudio.paused
+                    ? "▶"
+                    : "Ⅱ";
 
-        const playing =
-            !musicAudio.paused &&
-            !musicAudio.ended;
-
-        playerPlay.textContent =
-            playing ? "Ⅱ" : "▶";
-
-        playerPlay.setAttribute(
-            "aria-label",
-            playing
-                ? "Пауза"
-                : "Відтворити"
-        );
+            playerPlay.setAttribute(
+                "aria-label",
+                musicAudio.paused
+                    ? "Відтворити"
+                    : "Пауза"
+            );
+        }
 
         if (playerVisualizer) {
             playerVisualizer.classList.toggle(
                 "playing",
-                playing
+                !musicAudio.paused
             );
         }
+
+        renderPlaylist();
     }
+
+    // ---------------------------------------------------------
+    // LOAD TRACK
+    // ---------------------------------------------------------
 
     function loadTrack(
         index,
@@ -1788,10 +1653,13 @@ document.addEventListener("DOMContentLoaded", () => {
     ) {
         if (!tracks.length) return;
 
-        index =
-            ((index % tracks.length) +
-                tracks.length) %
-            tracks.length;
+        if (index < 0) {
+            index = tracks.length - 1;
+        }
+
+        if (index >= tracks.length) {
+            index = 0;
+        }
 
         currentTrackIndex = index;
 
@@ -1799,10 +1667,6 @@ document.addEventListener("DOMContentLoaded", () => {
             tracks[currentTrackIndex];
 
         musicAudio.pause();
-
-        musicAudio.removeAttribute(
-            "src"
-        );
 
         musicAudio.src =
             getTrackUrl(track.file);
@@ -1839,24 +1703,22 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             await musicAudio.play();
         } catch (error) {
-            console.error(
-                "Не вдалося запустити музику:",
+            console.warn(
+                "Music playback failed:",
                 error
             );
 
             showToast(
-                "Не вдалося відкрити цей MP3 ♫"
+                "Не вдалося відтворити трек"
             );
         }
 
         updatePlayButton();
-        renderPlaylist();
     }
 
     function pauseMusic() {
         musicAudio.pause();
         updatePlayButton();
-        renderPlaylist();
     }
 
     function toggleMusic() {
@@ -1870,50 +1732,44 @@ document.addEventListener("DOMContentLoaded", () => {
     function nextTrack() {
         if (!tracks.length) return;
 
-        const next =
+        const nextIndex =
             (currentTrackIndex + 1) %
             tracks.length;
 
-        loadTrack(next, true);
+        loadTrack(
+            nextIndex,
+            true
+        );
     }
 
     function previousTrack() {
         if (!tracks.length) return;
 
-        /*
-         * Якщо вже прослухано більше 3 секунд —
-         * повертаємося на початок цього треку.
-         */
-        if (
-            musicAudio.currentTime > 3
-        ) {
-            musicAudio.currentTime = 0;
-            return;
-        }
-
-        const previous =
-            (currentTrackIndex -
+        const previousIndex =
+            (
+                currentTrackIndex -
                 1 +
-                tracks.length) %
-            tracks.length;
+                tracks.length
+            ) % tracks.length;
 
         loadTrack(
-            previous,
+            previousIndex,
             true
         );
     }
+
+    // ---------------------------------------------------------
+    // LOAD MUSIC FROM API
+    // ---------------------------------------------------------
 
     async function loadMusic() {
         let apiTracks = [];
 
         try {
             const response =
-                await fetch(
-                    "/api/music",
-                    {
-                        cache: "no-store"
-                    }
-                );
+                await fetch("/api/music", {
+                    cache: "no-store"
+                });
 
             if (response.ok) {
                 const data =
@@ -1922,12 +1778,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (Array.isArray(data)) {
                     apiTracks = data;
                 } else if (
-                    Array.isArray(
-                        data.tracks
-                    )
+                    Array.isArray(data.tracks)
                 ) {
-                    apiTracks =
-                        data.tracks;
+                    apiTracks = data.tracks;
                 }
             }
         } catch (error) {
@@ -1936,21 +1789,21 @@ document.addEventListener("DOMContentLoaded", () => {
             );
         }
 
-        tracks =
-            apiTracks
-                .map(normalizeTrack)
-                .filter(Boolean);
+        tracks = apiTracks
+            .map(normalizeTrack)
+            .filter(Boolean);
 
         if (!tracks.length) {
-            tracks =
-                fallbackTracks
-                    .map(normalizeTrack)
-                    .filter(Boolean);
+            tracks = fallbackTracks
+                .map(normalizeTrack)
+                .filter(Boolean);
         }
 
         createVisualizerBars();
 
         currentTrackIndex = 0;
+
+        renderPlaylist();
 
         loadTrack(
             currentTrackIndex,
@@ -1958,14 +1811,14 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
         console.log(
-            "♫ Music tracks:",
+            "Music tracks:",
             tracks.length
         );
     }
 
-    /* ---------------------------------------------------------
-       MUSIC EVENTS
-    --------------------------------------------------------- */
+    // ---------------------------------------------------------
+    // PLAYER EVENTS
+    // ---------------------------------------------------------
 
     if (playerPlay) {
         playerPlay.addEventListener(
@@ -1992,20 +1845,29 @@ document.addEventListener("DOMContentLoaded", () => {
         playerVolume.addEventListener(
             "input",
             () => {
-                const value =
+                const percent =
                     Number(
                         playerVolume.value
                     );
 
-                const volume =
-                    clamp(
-                        value / 100,
+                const safePercent =
+                    Math.max(
                         0,
-                        1
+                        Math.min(
+                            100,
+                            Number.isFinite(percent)
+                                ? percent
+                                : 25
+                        )
                     );
 
                 musicAudio.volume =
-                    volume;
+                    safePercent / 100;
+
+                localStorage.setItem(
+                    "little-world-volume-percent",
+                    String(safePercent)
+                );
             }
         );
     }
@@ -2044,10 +1906,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         musicAudio.duration
                     );
             }
-
-            if (playerSeek) {
-                playerSeek.value = "0";
-            }
         }
     );
 
@@ -2068,13 +1926,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 ) &&
                 musicAudio.duration > 0
             ) {
-                playerSeek.value =
-                    String(
-                        (
-                            musicAudio.currentTime /
-                            musicAudio.duration
-                        ) * 100
-                    );
+                playerSeek.value = String(
+                    (
+                        musicAudio.currentTime /
+                        musicAudio.duration
+                    ) * 100
+                );
             }
         }
     );
@@ -2083,7 +1940,6 @@ document.addEventListener("DOMContentLoaded", () => {
         "play",
         () => {
             updatePlayButton();
-            renderPlaylist();
         }
     );
 
@@ -2091,7 +1947,6 @@ document.addEventListener("DOMContentLoaded", () => {
         "pause",
         () => {
             updatePlayButton();
-            renderPlaylist();
         }
     );
 
@@ -2105,33 +1960,27 @@ document.addEventListener("DOMContentLoaded", () => {
     musicAudio.addEventListener(
         "error",
         () => {
-            console.error(
+            console.warn(
                 "Audio error:",
-                musicAudio.error,
-                "URL:",
-                musicAudio.src
+                musicAudio.error
             );
 
             updatePlayButton();
-
-            showToast(
-                "MP3 не завантажився. Перевір файл у public/music."
-            );
         }
     );
 
     loadMusic();
 
-    /* =========================================================
-       SCROLL REVEAL
-    ========================================================= */
+    // =========================================================
+    // SCROLL REVEAL
+    // =========================================================
 
     const revealElements =
         $$(".reveal");
 
     if (
-        "IntersectionObserver" in
-        window
+        revealElements.length &&
+        "IntersectionObserver" in window
     ) {
         const observer =
             new IntersectionObserver(
@@ -2141,6 +1990,10 @@ document.addEventListener("DOMContentLoaded", () => {
                             if (
                                 entry.isIntersecting
                             ) {
+                                entry.target.classList.add(
+                                    "is-visible"
+                                );
+
                                 entry.target.classList.add(
                                     "visible"
                                 );
@@ -2166,24 +2019,25 @@ document.addEventListener("DOMContentLoaded", () => {
         revealElements.forEach(
             (element) => {
                 element.classList.add(
+                    "is-visible",
                     "visible"
                 );
             }
         );
     }
 
-    /* =========================================================
-       FINAL INIT
-    ========================================================= */
+    // =========================================================
+    // INITIAL STATE
+    // =========================================================
 
     if (playerVolume) {
-        playerVolume.value = "25";
+        playerVolume.value =
+            String(savedVolumePercent);
     }
 
+    console.log("♡ little world loaded");
     console.log(
-        "♡ little world loaded"
-    );
-    console.log(
-        "♫ Music volume: 25%"
+        "Initial music volume:",
+        `${savedVolumePercent}%`
     );
 });
